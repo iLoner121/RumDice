@@ -13,10 +13,11 @@ namespace RumDice.Module {
         /// </summary>
         /// <param name="k"></param>
         /// <returns></returns>
-        [KeyWord("hello",IsPrefix =true)]
-        [KeyWord("pp",IsSuffix=true)]
+        [KeyWord("hello fucku",IsPrefix =true)]
+        [KeyWord("pp kk gg tt dhafiefia",IsSuffix=true)]
         [KeyWord("9 d 12 p")]
         [KeyWord("hellopkpp",IsFullMatch =true)]
+        [KeyWord("hell kpp",isPrefix:true,isSuffix:true)]
         ValueTask TestKeyWord(string k);
 
         [KeyWord("echo",isPrefix:true)]

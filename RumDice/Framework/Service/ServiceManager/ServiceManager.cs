@@ -60,7 +60,6 @@ namespace RumDice.Framework {
         public async ValueTask Initialize() {
             await Task.Delay(1);
             var assemblyType = Assembly.GetAssembly(typeof(IExample)).ExportedTypes.ToList();
-            bool isMyClass = false;
             foreach (var assembly in assemblyType) {
                 // 只获取Class
                 if (assembly.IsInterface) continue;
