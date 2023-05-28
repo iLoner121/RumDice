@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.VisualBasic;
 using RumDice.Framework;
 using RumDice.Module;
 using System;
@@ -29,8 +30,13 @@ namespace RumDice.Core {
             await t2;
             Console.WriteLine("初始化已完成");
             var service = (IEventManager)_serviceProvider.GetService(typeof(IEventManager));
-            service?.HandleGroupMessage("hellopkpp");
-            service?.HandleGroupMessage("ok");
+            GroupMessage mes = new GroupMessage();
+            mes.Msg = ".raxxxx";
+            await service.HandleGroupMessage(mes);
+            Console.WriteLine("over");
+            GroupMessage mes2 = new GroupMessage();
+            mes2.Msg = ".rxxxxx";
+            service.HandleGroupMessage(mes2);
             return;
         }
 

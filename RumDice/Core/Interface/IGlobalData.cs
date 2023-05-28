@@ -11,40 +11,40 @@ using System.Threading.Tasks;
 namespace RumDice.Core {
     public interface IGlobalData {
         /// <summary>
-        /// 内建reply指令的对应表，只能为全匹配
+        /// 初始设置
+        /// </summary>
+        public AppSetting Setting { get; set; }
+
+        /// <summary>
+        /// reply指令的对应表，只能为全匹配
         /// </summary>
         /// <returns>Dictionary(key:匹配词 , value:返回语句)</returns>
-        Dictionary<string,string> InnerReplyTable { get; }
+        Dictionary<string,string> ReplyTable { get; }
+
 
         /// <summary>
-        /// 插件reply指令的对应表，只能为全匹配
-        /// </summary>
-        /// <returns>Dictionary(key:匹配词 , value:返回语句)</returns>
-        Dictionary<string,string> PluginReplyTable { get; }
-
-        /// <summary>
-        /// 内建复杂指令匹配表，多关键词匹配，包含全匹配
+        /// 复杂指令匹配表，多关键词匹配，包含全匹配
         /// </summary>
         /// <returns>Dictionary(key:对应方法的MethodInfo , value:匹配词列表)</returns>
-        Dictionary<List<KeyWordAttribute>,MethodInfo> InnerMatchTable { get; }
+        Dictionary<List<KeyWordAttribute>,string> MatchTable { get; }
+
 
         /// <summary>
-        /// 插件复杂指令匹配表，多关键词匹配，包含全匹配
-        /// </summary>
-        /// <returns>Dictionary(key:对应方法的MethodInfo , value:匹配词列表)</returns>
-        Dictionary<List<KeyWordAttribute>, MethodInfo> PluginMatchTable { get; }
-
-        /// <summary>
-        /// 内建接口表（RumDice自带的所有回复接口）
+        /// 接口表（RumDice自带的所有回复接口）
         /// </summary>
         /// <returns>Dictionary(key:方法名 , value:方法的委托)</returns>
-        Dictionary<string,MethodInfo> InnerFuncTable { get; }
+        Dictionary<string,MyMethodInfo> FuncTable { get; }
 
         /// <summary>
-        /// 插件接口表（Plugin文件夹下插入的方法列表）
+        /// 最小（高）优先级
         /// </summary>
-        /// <returns>Dictionary(key:方法名 , value:方法的委托)</returns>
-        Dictionary<string,MethodInfo> PluginFuncTable { get; }
+        public int MinPriority { get; }
+        /// <summary>
+        /// 最大（低）优先级
+        /// </summary>
+        public int MaxPriority { get; }
+
+
 
         /// <summary>
         /// 初始化

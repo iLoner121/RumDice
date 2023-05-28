@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,13 +15,16 @@ namespace RumDice.Core {
         readonly IGlobalData _globalData;
         readonly IServiceManager _serviceManager;
 
+
         public EventManager(IGlobalData globalData,
             IServiceManager serviceManager) {
             _globalData = globalData;
             _serviceManager = serviceManager;
         }
 
-        public async ValueTask HandleGroupMessage(string s) {
+        public async ValueTask HandleGroupMessage(Post post) {
+            var baseMsg = (BaseMessage)post;
+            string s = baseMsg.Msg;
             /*
              * 在信息匹配环节，消息包内的消息本身会进过如下的流程
              * 以此判断是否匹配：
@@ -34,6 +38,8 @@ namespace RumDice.Core {
 
             bool isMatch = false;
             MethodInfo method = null;
+            int minPriority = _globalData.MinPriority;
+            int maxPriority = _globalData.MaxPriority;
             if (!isMatch) {
                 // inner reply
             }
@@ -41,25 +47,43 @@ namespace RumDice.Core {
                 // plugin reply
             }
             if(!isMatch) {
-                // inner match
-                var innerFuncs = _globalData.InnerMatchTable;
-                foreach (var innerFunc in innerFuncs) {
-                    if (MatchKeyWord(s, innerFunc.Key)) {
+                // Match
+                // 遍历优先级
+                for(int i = minPriority; i <= maxPriority; i++) {
+                    // 提取对应优先级
+                    var innerTempDic = _globalData.MatchTable
+                        .Where(z => _globalData.FuncTable[z.Value].Priority== i)
+                        .ToDictionary(z=>z.Key,z=>z.Value);
+                    if (innerTempDic.Count == 0)
+                        continue;
+                    foreach(var temp in innerTempDic) {
+                        // 该接口是否可以用于群聊
+                        if (_globalData.FuncTable[temp.Value].Scope == 3)
+                            continue;
+                        // 是否匹配
+                        if (!MatchKeyWord(s, temp.Key))
+                            continue;
+                       
                         isMatch = true;
-                        method = innerFunc.Value;
+                        method = _globalData.FuncTable[temp.Value].MethodInfo;
                         break;
                     }
+                    if (isMatch)
+                        break;
                 }
-            }
-            if (!isMatch) {
-                // plugin match
             }
 
             if (isMatch) {
                 Console.WriteLine("已匹配到关键词");
                 var service = _serviceManager.GetService(method.DeclaringType);
                 if (service != null) {
-                    method.Invoke(service, new object[] { s });
+                    var res = method.Invoke(service, new object[] { post });
+                    if (res != null) {
+                        Console.WriteLine(res.GetType().FullName);
+
+                    } else {
+                        Console.WriteLine("未获得返回值");
+                    }
                 } else {
                     Console.WriteLine("获取类型失败");
                 }
@@ -81,6 +105,12 @@ namespace RumDice.Core {
                 string[] keywords = attribute.KeyWord.Split(' ');
                 c1 = true; c2 = true; c3 = true; c4=true;
                 foreach(string keyword in keywords) {
+                    // 是否符合模糊匹配
+                    if (c1) {
+                        if (message.Contains(keyword)) {
+                            c1 = false;
+                        }
+                    }
                     // 是否符合全匹配
                     if (attribute.IsFullMatch&&c2) {
                         if(message.Equals(keyword)) {
@@ -99,13 +129,6 @@ namespace RumDice.Core {
                             c4 = false;
                         }
                     }
-                    // 是否符合模糊匹配
-                    if (c1) {
-                        if (message.Contains(keyword)){
-                            c1 = false;
-                        }
-                    }
-
                 }
                 if (c1 || (attribute.IsFullMatch && c2) || (attribute.IsPrefix && c3) || (attribute.IsSuffix && c4)) {
                     return false;
