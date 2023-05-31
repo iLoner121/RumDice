@@ -7,13 +7,36 @@ using System.Threading.Tasks;
 
 namespace RumDice.Module {
     public class Example : IExample {
-        public async void TestKeyWord(Post post) {
+        public void TestKeyWord1(Post post) {
             var GroupMessage = (GroupMessage)post;
-            Console.WriteLine($"Match!：{GroupMessage.Msg}");
+            Console.WriteLine($"Test1 Match：{GroupMessage.Msg}");
         }
 
-        public async void TestKeyWord2(Post post) {
-            Console.WriteLine("Test2");
+        public Send TestKeyWord2(Post post) {
+            var GroupMessage = (GroupMessage)post;
+            Console.WriteLine($"Test2 Match：{GroupMessage.Msg}");
+            Send send = new Send();
+            // send.GroupID = 11111111111;
+            send.Msg = "你好啊！";
+            return send;
+        }
+
+        public List<Send> TestKeyWord3(Post post) {
+            var GroupMessage = (GroupMessage)post;
+            Console.WriteLine($"Test3 Match：{GroupMessage.Msg}");
+            Send send = new Send();
+            // send.GroupID=11111111111;
+            send.Msg = "hello！";
+            return new List<Send> { send };
+        }
+
+        public string TestEcho(Post post) {
+            var GroupMessage = (GroupMessage)post;
+            string msg = GroupMessage.Msg;
+            int index = msg.IndexOf('o');
+            string echo = msg.Remove(0, index + 1);
+            Console.WriteLine(echo);
+            return echo;
         }
     }
 }

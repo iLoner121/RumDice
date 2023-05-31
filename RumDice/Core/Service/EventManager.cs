@@ -1,4 +1,5 @@
-﻿using RumDice.Framework;
+﻿using EleCho.GoCqHttpSdk.Action;
+using RumDice.Framework;
 using RumDice.Module;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,65 @@ namespace RumDice.Core {
             _serviceManager = serviceManager;
         }
 
+        public async ValueTask HandlePrivateMessage(Post post) {
+            var baseMsg = (BaseMessage)post;
+            string s = baseMsg.Msg;
+            /*
+             * 在信息匹配环节，消息包内的消息本身会进过如下的流程
+             * 以此判断是否匹配：
+             * 内置简单匹配
+             * 插件简单匹配
+             * 复杂匹配
+             * 一旦在任意环节匹配到，后续的环节将不会被访问
+             * 因此此顺序也是指令的优先级
+             */
+
+            bool isMatch = false;
+            MethodInfo method = null;
+            int minPriority = _globalData.MinPriority;
+            int maxPriority = _globalData.MaxPriority;
+            if (!isMatch) {
+                // inner reply
+            }
+            if (!isMatch) {
+                // plugin reply
+            }
+            if (!isMatch) {
+                // Match
+                // 遍历优先级
+                for (int i = minPriority; i <= maxPriority; i++) {
+                    // 提取对应优先级
+                    var innerTempDic = _globalData.MatchTable
+                        .Where(z => _globalData.FuncTable[z.Value].Priority == i)
+                        .ToDictionary(z => z.Key, z => z.Value);
+                    if (innerTempDic.Count == 0)
+                        continue;
+                    foreach (var temp in innerTempDic) {
+                        // 该接口是否可以用于群聊
+                        if (_globalData.FuncTable[temp.Value].Scope == 1)
+                            continue;
+                        // 是否匹配
+                        if (!MatchKeyWord(s, temp.Key))
+                            continue;
+
+                        isMatch = true;
+                        method = _globalData.FuncTable[temp.Value].MethodInfo;
+                        break;
+                    }
+                    if (isMatch)
+                        break;
+                }
+            }
+
+            if (isMatch) {
+                Console.WriteLine("已匹配到关键词");
+                Invoke(method, post);
+            } else {
+                Console.WriteLine("未匹配到关键词");
+            }
+
+        }
+
         public async ValueTask HandleGroupMessage(Post post) {
             var baseMsg = (BaseMessage)post;
             string s = baseMsg.Msg;
@@ -30,8 +90,7 @@ namespace RumDice.Core {
              * 以此判断是否匹配：
              * 内置简单匹配
              * 插件简单匹配
-             * 内置复杂匹配
-             * 插件复杂匹配
+             * 复杂匹配
              * 一旦在任意环节匹配到，后续的环节将不会被访问
              * 因此此顺序也是指令的优先级
              */
@@ -75,23 +134,41 @@ namespace RumDice.Core {
 
             if (isMatch) {
                 Console.WriteLine("已匹配到关键词");
-                var service = _serviceManager.GetService(method.DeclaringType);
-                if (service != null) {
-                    var res = method.Invoke(service, new object[] { post });
-                    if (res != null) {
-                        Console.WriteLine(res.GetType().FullName);
-
-                    } else {
-                        Console.WriteLine("未获得返回值");
-                    }
-                } else {
-                    Console.WriteLine("获取类型失败");
-                }
+                Invoke(method, post);
             } else {
                 Console.WriteLine("未匹配到关键词");
             }
         }
 
+
+        async ValueTask Invoke(MethodInfo method, Post post) {
+            var service = _serviceManager.GetService(method.DeclaringType);
+            if (service == null) {
+                Console.WriteLine("获取类型失败");
+                return;
+            }
+            
+            var res = method.Invoke(service, new object[] { post });
+            if (res == null) {
+                Console.WriteLine("未获得返回值");
+                return;
+            } 
+            Console.WriteLine(res.GetType().FullName);
+            if(res is string s) {
+                await SendMessage(s);
+                return;
+            }
+            if(res is Send send) {
+                await SendMessage(send);
+                return;
+            }
+            if(res is List<Send> sends) {
+                await SendMessage(sends);
+                return;
+            }
+            Console.WriteLine("错误的返回类型");
+            return;
+        }
 
         /// <summary>
         /// 复杂匹配
@@ -136,5 +213,16 @@ namespace RumDice.Core {
             }
             return true;
         }
+
+        async ValueTask SendMessage(string s) {
+            Console.WriteLine(s);
+
+        }
+        async ValueTask SendMessage(Send send) {
+            Console.WriteLine(send.ToString());
+        }
+        async ValueTask SendMessage(List<Send> sends) {
+            Console.WriteLine("List<Send>");
+        }   
     }
 }

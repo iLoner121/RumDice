@@ -1,0 +1,34 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RumDice.Framework {
+    /// <summary>
+    /// 回复消息类型
+    /// </summary>
+    public class Send {
+        /// <summary>
+        /// 回复类型为群聊/私聊（可不填写）
+        /// </summary>
+        public MessageType MsgType { get; set; } = MessageType.None;
+        /// <summary>
+        /// 回复消息内容
+        /// </summary>
+        public string Msg { get; set; } = string.Empty;
+        /// <summary>
+        /// 私聊目标ID（如为私聊回复需要填写）
+        /// </summary>
+        public long UserID { get; set; } = 0;
+        /// <summary>
+        /// 群聊目标ID（如为群聊回复需要填写）
+        /// </summary>
+        public long GroupID { get; set; } = 0;
+        /// <summary>
+        /// 是否将 Msg 解析为 CQ 码
+        /// </summary>
+        public bool IsCQ { get; set; }=false;
+
+    }
+}

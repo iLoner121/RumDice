@@ -17,6 +17,9 @@ namespace RumDice.Framework {
         /// 群消息=1
         /// </summary>
         Group = 1,
-
+        /// <summary>
+        /// 特殊状态，不设值
+        /// </summary>
+        None = 0,
     }
 }

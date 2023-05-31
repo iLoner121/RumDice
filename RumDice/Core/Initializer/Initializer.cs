@@ -37,6 +37,9 @@ namespace RumDice.Core {
             GroupMessage mes2 = new GroupMessage();
             mes2.Msg = ".rxxxxx";
             service.HandleGroupMessage(mes2);
+            GroupMessage mes3 = new GroupMessage();
+            mes3.Msg = "echo hello world!!";
+            service.HandleGroupMessage (mes3);
             return;
         }
 

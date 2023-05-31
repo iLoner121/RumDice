@@ -2,6 +2,7 @@
 using RumDice.Framework;
 using RumDice.Module;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -15,7 +16,16 @@ using System.Threading.Tasks;
 
 namespace RumDice.Core {
     internal class GlobalData : IGlobalData {
+        // 0开发模式 1发行模式
+        private int _mode = 0;
         #region Setting
+        /// <summary>
+        /// 获取应用所需文件的根目录
+        /// </summary>
+        public string RootDic;
+        /// <summary>
+        /// 系统配置文件
+        /// </summary>
         public AppSetting Setting { get; set; } = new();
         #endregion
 
@@ -29,7 +39,19 @@ namespace RumDice.Core {
 
 
         public GlobalData() {
-
+            switch (_mode) {
+                case 0:
+                    string curDic = Environment.CurrentDirectory;
+                    DirectoryInfo dicInfo = new DirectoryInfo(curDic);
+                    RootDic = dicInfo.Parent.Parent.Parent.FullName;
+                    break;
+                case 1:
+                    RootDic=Environment.CurrentDirectory;
+                    break;
+                default:
+                    break;
+            }
+            Setting.LoggerConfig.Location = RootDic;
         }
 
         public async ValueTask Initialize() {
@@ -38,7 +60,8 @@ namespace RumDice.Core {
         }
         public async ValueTask LoadAppSetting() {
             await Task.Delay(1);
-            string path = Environment.CurrentDirectory;
+            string path = RootDic+"\\AppSetting.json";
+            Console.WriteLine(path);
             if (!File.Exists(path)) {
                 string defaultSetting = JsonConvert.SerializeObject(Setting);
                 Console.WriteLine(defaultSetting);
@@ -58,7 +81,15 @@ namespace RumDice.Core {
                     Console.WriteLine("解析AppSetting失败");
                 }
             }
-            
+
+
+
+
+
+
+
+
+
 
         }
 

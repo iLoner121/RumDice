@@ -38,7 +38,7 @@ namespace RumDice.Framework {
     }
 
     public class LoggerConfig {
-        public string Location { get; set; } = Environment.CurrentDirectory+"\\Log";
+        public string Location { get; set; } 
         public string Level { get; set; } = "normal";
     }
 }
