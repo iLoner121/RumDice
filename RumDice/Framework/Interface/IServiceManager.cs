@@ -53,5 +53,7 @@ namespace RumDice.Framework {
         /// <param name="methodInfo">每个需获取类的MethodInfo</param>
         /// <returns></returns>
         List<object> GetServiceList(List<Type> types);
+
+        object GetStruct(string name,out Type type);
     }
 }

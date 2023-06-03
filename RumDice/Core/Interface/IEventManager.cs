@@ -12,14 +12,14 @@ namespace RumDice.Core {
         /// </summary>
         /// <param name="post"></param>
         /// <returns></returns>
-        ValueTask HandleGroupMessage(Post post);
+        void HandleGroupMessage(Post post);
 
         /// <summary>
         /// 处理私聊消息
         /// </summary>
         /// <param name="post"></param>
         /// <returns></returns>
-        ValueTask HandlePrivateMessage(Post post);
+        void HandlePrivateMessage(Post post);
 
     }
 }

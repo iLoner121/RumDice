@@ -46,6 +46,8 @@ namespace RumDice.Framework {
         /// </summary>
         Dictionary<Type, Type> _interfaceTable;
 
+        Dictionary<string,Type> _classTable;
+
         public ServiceManager() {
             _singletonTable = new();
             _countedTable = new();
@@ -54,6 +56,7 @@ namespace RumDice.Framework {
             _lifetimeCheckTable = new();
             _maxCheckTable = new();
             _interfaceTable = new();
+            _classTable = new();
         }
 
 
@@ -76,6 +79,21 @@ namespace RumDice.Framework {
                     SetTransient(interf,assembly);
                     Console.WriteLine($"已将{interf.Name},{assembly.Name}加入对象管理器");
                 }
+            }
+
+            foreach (var assembly in assemblyType) {
+                // 只获取Class
+                if (assembly.IsInterface) continue;
+
+                if(assembly.GetCustomAttribute(typeof(MyStructAttribute)) is not MyStructAttribute attribute1) {
+                    continue;
+                }
+                if (_classTable.ContainsKey(assembly.Name)) {
+                    Console.WriteLine("类别添加失败：重复的接口或类别");
+                    continue;
+                }
+                _classTable.Add(assembly.Name, assembly);
+                Console.WriteLine($"已将{assembly.Name}加入对象管理器");
             }
         }
 
@@ -180,6 +198,14 @@ namespace RumDice.Framework {
                     break;
             }
             return null;
+        }
+
+        public object GetStruct(string name,out Type type) {
+            if (!_classTable.ContainsKey(name)) {
+                Console.WriteLine("未找到类型");
+            }
+            type= _classTable[name];
+            return Activator.CreateInstance(_classTable[name]);
         }
 
         public List<object> GetServiceList(Type type) {

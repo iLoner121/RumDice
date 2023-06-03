@@ -5,10 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Framework {
+    [MyStruct]
     public class AppSetting {
         public ServerConfig ServerConfig { get; set; } = new();
         public UserConfig UserConfig { get; set; }=new();
         public LoggerConfig LoggerConfig { get; set; } = new();
+        public FileConfig FileConfig { get; set; }=new();
     }
 
     public class ServerConfig {
@@ -19,7 +21,7 @@ namespace RumDice.Framework {
         /// <summary>
         /// 监听接口
         /// </summary>
-        public ushort Port { get; set; } = 8888;
+        public ushort Port { get; set; } = 8080;
     }
 
     public class UserConfig {
@@ -35,6 +37,15 @@ namespace RumDice.Framework {
         /// 是否被锁定（能否添加好友）
         /// </summary>
         public bool IsLocked { get; set; } = true;
+    }
+
+    /// <summary>
+    /// 系统文档的位置
+    /// </summary>
+    public class FileConfig {
+        public string RepositoryRoot { get; set; } = "\\Repository";
+        public string ReplyTable { get; set; } = "\\Repository\\System";
+        public string ReturnWordTable { get; set; } = "\\Repository\\System";
     }
 
     public class LoggerConfig {

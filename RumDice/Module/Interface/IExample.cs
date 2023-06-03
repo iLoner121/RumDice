@@ -12,7 +12,7 @@ namespace RumDice.Module {
         /// 测试接口（无返回值）
         /// </summary>
         /// <param name="post"></param>
-        [KeyWord(".r", isPrefix: true)]
+        //[KeyWord(".r", isPrefix: true)]
         void TestKeyWord1(Post post);
 
         /// <summary>
@@ -20,8 +20,8 @@ namespace RumDice.Module {
         /// </summary>
         /// <param name="post"></param>
         /// <returns></returns>
-        [KeyWord(".ra",isPrefix:true)]
-        [Priority(1)]
+        //[KeyWord(".ra",isPrefix:true)]
+        //[Priority(1)]
         Send TestKeyWord2(Post post);
 
         /// <summary>
@@ -38,6 +38,7 @@ namespace RumDice.Module {
         /// <param name="post"></param>
         /// <returns></returns>
         [KeyWord("echo Echo ECHO .echo .Echo .ECHO",isPrefix:true)]
+        [IsPrivate]
         string TestEcho(Post post);
 
     }

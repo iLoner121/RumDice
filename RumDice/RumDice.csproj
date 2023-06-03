@@ -20,8 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Framework\Interface\ILogger\" />
-    <Folder Include="Framework\Interface\IDataHub\" />
     <Folder Include="Repository\System\Data\UserData\" />
     <Folder Include="Repository\Plugin\" />
     <Folder Include="Repository\System\Data\" />

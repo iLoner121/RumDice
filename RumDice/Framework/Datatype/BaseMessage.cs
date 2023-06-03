@@ -20,7 +20,7 @@ namespace RumDice.Framework {
         /// <summary>
         /// 消息ID
         /// </summary>
-        public int MsgID { get; set; }
+        public long MsgID { get; set; }
         /// <summary>
         /// 发件人ID
         /// </summary>

@@ -31,7 +31,7 @@ namespace RumDice.Module {
         }
 
         public string TestEcho(Post post) {
-            var GroupMessage = (GroupMessage)post;
+            var GroupMessage = (PrivateMessage)post;
             string msg = GroupMessage.Msg;
             int index = msg.IndexOf('o');
             string echo = msg.Remove(0, index + 1);

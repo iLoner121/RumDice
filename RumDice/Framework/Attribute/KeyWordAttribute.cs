@@ -14,6 +14,9 @@ namespace RumDice.Framework {
         public bool IsFullMatch { get; set; }
         public bool IsPrefix { get; set; }
         public bool IsSuffix { get; set; }
+        public bool IsRegex { get; set; }
+        public bool IsCaseSensitive { get; set; }
+        public bool IsDivided { get; set; }
         /// <summary>
         /// 声明关键词匹配特性
         /// </summary>
@@ -21,11 +24,17 @@ namespace RumDice.Framework {
         /// <param name="isFullMatch">是否为全字匹配</param>
         /// <param name="isPrefix">是否为前缀</param>
         /// <param name="isSuffix">是否为后缀</param>
-        public KeyWordAttribute(string keyWord, bool isFullMatch=false, bool isPrefix=false,bool isSuffix = false) {
+        /// <param name="isRegex">是否为正则匹配（此条为true会导致其他选项失效）</param>
+        /// <param name="isCaseSensitive">是否大小写敏感</param>
+        /// <param name="isDivided">该关键词在消息内是否必须被空格分隔</param>
+        public KeyWordAttribute(string keyWord, bool isFullMatch=false, bool isPrefix=false,bool isSuffix = false,bool isRegex=false, bool isCaseSensitive=false,bool isDivided=false) {
             this.KeyWord = keyWord;
             this.IsFullMatch = isFullMatch;
             this.IsPrefix = isPrefix;
             this.IsSuffix = isSuffix;
+            this.IsRegex = isRegex;
+            this.IsCaseSensitive = isCaseSensitive;
+            this.IsDivided = isDivided;
         }
 
     }

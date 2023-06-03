@@ -9,11 +9,23 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
-    public interface IGlobalData {
+    public interface ICoreData {
+        /// <summary>
+        /// 0开发模式 1发行模式（会影响文件读取的根目录）
+        /// </summary>
+        int Mode { get; }
+        /// <summary>
+        /// 0使用gocqhttp客户端（如果gocqhttp未开启RumDice会启动失败） 1使用测试程序
+        /// </summary>
+        int Test { get; }
+        /// <summary>
+        /// 获取应用所需文件的根目录
+        /// </summary>
+        public string RootDic { get; set; }
         /// <summary>
         /// 初始设置
         /// </summary>
-        public AppSetting Setting { get; set; }
+        AppSetting Setting { get; set; }
 
         /// <summary>
         /// reply指令的对应表，只能为全匹配

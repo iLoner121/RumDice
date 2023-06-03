@@ -15,17 +15,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
-    internal class GlobalData : IGlobalData {
-        // 0开发模式 1发行模式
-        private int _mode = 0;
+    internal class CoreData : ICoreData {
+        public int Mode { get; } = 0;
+
+        public int Test { get; } = 1;
         #region Setting
-        /// <summary>
-        /// 获取应用所需文件的根目录
-        /// </summary>
-        public string RootDic;
-        /// <summary>
-        /// 系统配置文件
-        /// </summary>
+
+        public string RootDic { get; set; }
+
         public AppSetting Setting { get; set; } = new();
         #endregion
 
@@ -38,8 +35,8 @@ namespace RumDice.Core {
         #endregion
 
 
-        public GlobalData() {
-            switch (_mode) {
+        public CoreData() {
+            switch (Mode) {
                 case 0:
                     string curDic = Environment.CurrentDirectory;
                     DirectoryInfo dicInfo = new DirectoryInfo(curDic);
@@ -65,8 +62,10 @@ namespace RumDice.Core {
             if (!File.Exists(path)) {
                 string defaultSetting = JsonConvert.SerializeObject(Setting);
                 Console.WriteLine(defaultSetting);
-                //FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite) ;
-                StreamWriter sw = new StreamWriter(path);
+                FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite) ;
+                fs.Seek(0, SeekOrigin.Begin);
+                fs.SetLength(0);
+                StreamWriter sw = new StreamWriter(fs,Encoding.UTF8);
                 sw.WriteLine(defaultSetting);
                 sw.Close();
             } else {
@@ -81,16 +80,6 @@ namespace RumDice.Core {
                     Console.WriteLine("解析AppSetting失败");
                 }
             }
-
-
-
-
-
-
-
-
-
-
         }
 
 
@@ -137,7 +126,60 @@ namespace RumDice.Core {
 
             #endregion
             #region 识别reply规则
-
+            foreach (var assembly in assemblys) {
+                if (assembly.GetCustomAttribute(typeof(MyClassAttribute)) is not MyClassAttribute)
+                    continue;
+                // 获取内部方法
+                var methods = assembly.GetMethods();
+                foreach (var method in methods) {
+                    foreach (var att in method.GetCustomAttributes()) {
+                        if (att is not ReplyAttribute a)
+                            continue;
+                        try {
+                            if (!FuncTable.ContainsKey(method.Name)) {
+                                var myInfo = new MyMethodInfo(method);
+                                FuncTable.Add(myInfo.MethodInfo.Name, myInfo);
+                            }
+                            ReplyTable.Add(a.Reply, $"[{method.Name}]");
+                            Console.WriteLine("添加简易回复接口成功");
+                        }
+                        catch {
+                            Console.WriteLine("添加简易回复接口失败");
+                        }
+                    }
+                }
+            }
+            #endregion
+            #region 设置自动前缀指令
+            foreach (var assembly in assemblys) {
+                if (assembly.GetCustomAttribute(typeof(MyClassAttribute)) is not MyClassAttribute)
+                    continue;
+                // 获取内部方法
+                var methods = assembly.GetMethods();
+                foreach (var method in methods) {
+                    foreach (var att in method.GetCustomAttributes()) {
+                        if (att is not PrefixMatchAttribute a)
+                            continue;
+                        try {
+                            var k = new List<KeyWordAttribute>() { new KeyWordAttribute($".{a.Prefix}  。{a.Prefix}", isPrefix: true), new KeyWordAttribute($"{a.Prefix}", isPrefix: true, isDivided: true) };
+                            MatchTable.Add(
+                                new List<KeyWordAttribute>() { 
+                                    new KeyWordAttribute($".{a.Prefix}  。{a.Prefix}", isPrefix: true), 
+                                    new KeyWordAttribute($"{a.Prefix}", isPrefix: true, isDivided: true) 
+                                }, method.Name);
+                            Console.WriteLine($"已设置前缀指令：{a.Prefix}->{method.Name}");
+                            if (FuncTable.ContainsKey(method.Name)) {
+                                return;
+                            }
+                            var myInfo = new MyMethodInfo(method);
+                            FuncTable.Add(myInfo.MethodInfo.Name, myInfo);
+                        }
+                        catch {
+                            Console.WriteLine("设置前缀指令失败");
+                        }
+                    }
+                }
+            }
 
             #endregion
             #region 识别接口优先级
@@ -154,9 +196,6 @@ namespace RumDice.Core {
                     method.Priority = 3;
                     Console.WriteLine($"方法{method.MethodInfo.Name}的优先级为3");
                 }
-            }
-            foreach(var method in FuncTable.Values) {
-                Console.WriteLine(method.MethodInfo.Name + " " + method.Priority);
             }
             // 该方法废弃，因为TypeDescriptor添加的attribute只能被TypeDescriptor找到
             /*
@@ -202,12 +241,11 @@ namespace RumDice.Core {
                         catch {
                             Console.WriteLine("设置内部服务失败");
                         }
-
                     }
                 }
             }
-
             #endregion
+            
         }
 
     }

@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RumDice.Framework;
 using RumDice.Module;
+using RumDice.Test;
 
 namespace RumDice.Core.Startup {
     public class Startup {
@@ -18,15 +19,19 @@ namespace RumDice.Core.Startup {
                     .ConfigureServices(services =>
                     {
                         // 核心类
-                        services.AddSingleton<IGlobalData,GlobalData>();
+                        services.AddSingleton<ICoreData,CoreData>();
                         services.AddSingleton<IEventManager, EventManager>();
                         services.AddSingleton<IServiceManager, ServiceManager>();
+                        services.AddSingleton<IClientConnector, ClientConnector>();
+                        services.AddSingleton<IDataCenter, DataCenter>();
+                        services.AddSingleton<Tester>();
                         
                         // host
                         services.AddHostedService<Initializer>();
                     })
                     .Build();
                 await host.StartAsync();
+                Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!");
             }
             catch {
                 Console.WriteLine("生成失败");

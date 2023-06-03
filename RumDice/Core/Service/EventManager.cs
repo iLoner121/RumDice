@@ -1,4 +1,5 @@
 ﻿using EleCho.GoCqHttpSdk.Action;
+using Microsoft.Extensions.DependencyInjection;
 using RumDice.Framework;
 using RumDice.Module;
 using System;
@@ -9,69 +10,34 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
     public class EventManager : IEventManager {
-        readonly IGlobalData _globalData;
+        readonly ICoreData _globalData;
         readonly IServiceManager _serviceManager;
+        readonly IClientConnector _clientConnector;
+
+        readonly int _minPriority;
+        readonly int _maxPriority;
 
 
-        public EventManager(IGlobalData globalData,
-            IServiceManager serviceManager) {
+        public EventManager(ICoreData globalData,
+            IServiceManager serviceManager,
+            IClientConnector clientConnector) {
             _globalData = globalData;
             _serviceManager = serviceManager;
+            _clientConnector = clientConnector;
+
+            _minPriority=globalData.MinPriority;
+            _maxPriority=globalData.MaxPriority;
         }
 
-        public async ValueTask HandlePrivateMessage(Post post) {
+        public async void HandlePrivateMessage(Post post) {
             var baseMsg = (BaseMessage)post;
-            string s = baseMsg.Msg;
-            /*
-             * 在信息匹配环节，消息包内的消息本身会进过如下的流程
-             * 以此判断是否匹配：
-             * 内置简单匹配
-             * 插件简单匹配
-             * 复杂匹配
-             * 一旦在任意环节匹配到，后续的环节将不会被访问
-             * 因此此顺序也是指令的优先级
-             */
-
-            bool isMatch = false;
-            MethodInfo method = null;
-            int minPriority = _globalData.MinPriority;
-            int maxPriority = _globalData.MaxPriority;
-            if (!isMatch) {
-                // inner reply
-            }
-            if (!isMatch) {
-                // plugin reply
-            }
-            if (!isMatch) {
-                // Match
-                // 遍历优先级
-                for (int i = minPriority; i <= maxPriority; i++) {
-                    // 提取对应优先级
-                    var innerTempDic = _globalData.MatchTable
-                        .Where(z => _globalData.FuncTable[z.Value].Priority == i)
-                        .ToDictionary(z => z.Key, z => z.Value);
-                    if (innerTempDic.Count == 0)
-                        continue;
-                    foreach (var temp in innerTempDic) {
-                        // 该接口是否可以用于群聊
-                        if (_globalData.FuncTable[temp.Value].Scope == 1)
-                            continue;
-                        // 是否匹配
-                        if (!MatchKeyWord(s, temp.Key))
-                            continue;
-
-                        isMatch = true;
-                        method = _globalData.FuncTable[temp.Value].MethodInfo;
-                        break;
-                    }
-                    if (isMatch)
-                        break;
-                }
-            }
+            MethodInfo method;
+            bool isMatch = MatchFunc(baseMsg.Msg, 1, out method);
 
             if (isMatch) {
                 Console.WriteLine("已匹配到关键词");
@@ -82,55 +48,10 @@ namespace RumDice.Core {
 
         }
 
-        public async ValueTask HandleGroupMessage(Post post) {
+        public async void HandleGroupMessage(Post post) {
             var baseMsg = (BaseMessage)post;
-            string s = baseMsg.Msg;
-            /*
-             * 在信息匹配环节，消息包内的消息本身会进过如下的流程
-             * 以此判断是否匹配：
-             * 内置简单匹配
-             * 插件简单匹配
-             * 复杂匹配
-             * 一旦在任意环节匹配到，后续的环节将不会被访问
-             * 因此此顺序也是指令的优先级
-             */
-
-            bool isMatch = false;
-            MethodInfo method = null;
-            int minPriority = _globalData.MinPriority;
-            int maxPriority = _globalData.MaxPriority;
-            if (!isMatch) {
-                // inner reply
-            }
-            if (!isMatch) {
-                // plugin reply
-            }
-            if(!isMatch) {
-                // Match
-                // 遍历优先级
-                for(int i = minPriority; i <= maxPriority; i++) {
-                    // 提取对应优先级
-                    var innerTempDic = _globalData.MatchTable
-                        .Where(z => _globalData.FuncTable[z.Value].Priority== i)
-                        .ToDictionary(z=>z.Key,z=>z.Value);
-                    if (innerTempDic.Count == 0)
-                        continue;
-                    foreach(var temp in innerTempDic) {
-                        // 该接口是否可以用于群聊
-                        if (_globalData.FuncTable[temp.Value].Scope == 3)
-                            continue;
-                        // 是否匹配
-                        if (!MatchKeyWord(s, temp.Key))
-                            continue;
-                       
-                        isMatch = true;
-                        method = _globalData.FuncTable[temp.Value].MethodInfo;
-                        break;
-                    }
-                    if (isMatch)
-                        break;
-                }
-            }
+            MethodInfo method;
+            bool isMatch = MatchFunc(baseMsg.Msg,3, out method);
 
             if (isMatch) {
                 Console.WriteLine("已匹配到关键词");
@@ -140,7 +61,12 @@ namespace RumDice.Core {
             }
         }
 
-
+        /// <summary>
+        /// 调用匹配到的服务
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="post"></param>
+        /// <returns></returns>
         async ValueTask Invoke(MethodInfo method, Post post) {
             var service = _serviceManager.GetService(method.DeclaringType);
             if (service == null) {
@@ -155,7 +81,7 @@ namespace RumDice.Core {
             } 
             Console.WriteLine(res.GetType().FullName);
             if(res is string s) {
-                await SendMessage(s);
+                await SendMessage(post,s);
                 return;
             }
             if(res is Send send) {
@@ -171,12 +97,47 @@ namespace RumDice.Core {
         }
 
         /// <summary>
+        /// 匹配全过程
+        /// </summary>
+        /// <param name="scopeCheck">不符合的scope</param>
+        /// <param name="method">返回的method</param>
+        /// <returns></returns>
+        public bool MatchFunc(string msg,int scopeCheck,out MethodInfo method) {
+            method = null;
+            // TODO:匹配reply
+
+            // 匹配复杂方法
+            for (int i = _minPriority; i <= _maxPriority; i++) {
+                // 提取对应优先级
+                var innerTempDic = _globalData.MatchTable
+                    .Where(z => _globalData.FuncTable[z.Value].Priority == i)
+                    .ToDictionary(z => z.Key, z => z.Value);
+                if (innerTempDic.Count == 0)
+                    continue;
+                foreach (var temp in innerTempDic) {
+                    // 该接口是否可以用于群聊
+                    if (_globalData.FuncTable[temp.Value].Scope == scopeCheck)
+                        continue;
+                    // 是否匹配
+                    if (!MatchKeyWord(msg, temp.Key))
+                        continue;
+
+                    method = _globalData.FuncTable[temp.Value].MethodInfo;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// 复杂匹配
         /// </summary>
         /// <param name="message">用户的输入字符串</param>
         /// <param name="attributes">KeyWordAttribute列表</param>
         /// <returns></returns>
         bool MatchKeyWord(string message,List<KeyWordAttribute> attributes) {
+            string originalMessage = message;
             bool c1 = true, c2 = true, c3 = true, c4 = true;
             foreach (KeyWordAttribute attribute in attributes) {
                 string[] keywords = attribute.KeyWord.Split(' ');
@@ -214,12 +175,33 @@ namespace RumDice.Core {
             return true;
         }
 
-        async ValueTask SendMessage(string s) {
+        /// <summary>
+        /// 发送回信
+        /// </summary>
+        /// <param name="post"></param>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        async ValueTask SendMessage(Post post,string s) {
             Console.WriteLine(s);
-
+            var sender=(BaseMessage)post;
+            Send send = new();
+            send.MsgType=sender.MsgType;
+            switch (send.MsgType) {
+                case MessageType.Private:
+                    send.UserID = ((PrivateMessage)post).UserID;
+                    break;
+                case MessageType.Group:
+                    send.GroupID = ((GroupMessage)post).GroupID;
+                    break;
+                default:
+                    return;
+            }
+            send.Msg=sender.Msg;
+            SendMessage(new List<Send> { send });
         }
         async ValueTask SendMessage(Send send) {
             Console.WriteLine(send.ToString());
+            SendMessage(new List<Send> { send });
         }
         async ValueTask SendMessage(List<Send> sends) {
             Console.WriteLine("List<Send>");
