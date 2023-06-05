@@ -17,46 +17,74 @@ namespace RumDice.Core {
         readonly IServiceManager _serviceManager;
         readonly IClientConnector _clientConnector;
         readonly IDataCenter _dataCenter;
+        readonly IMessagePipeline _messagePipeline;
+        readonly IRumLogger _logger;
         readonly Tester _tester;
         public Initializer(ICoreData globalData,
             IServiceProvider serviceProvider,
             IServiceManager serviceManager,
             IClientConnector clientConnector,
             IDataCenter dataCenter,
-            Tester tester) {
+            Tester tester,
+            IMessagePipeline messagePipeline,
+            IRumLogger logger) {
             _globalData = globalData;
             _serviceProvider = serviceProvider;
             _serviceManager = serviceManager;
             _clientConnector = clientConnector;
             _dataCenter = dataCenter;
             _tester = tester;
+            _messagePipeline = messagePipeline;
+            _logger = logger;
         }
 
         public async Task StartAsync(CancellationToken token) {
+            #region 初始化
+            // 初始化logger
+            _logger.Initialize(_globalData.Setting,_globalData.RootDic);
+            _logger.Info("Initializer", "启动开始");
             // 初始化核心数据
-            ValueTask t1 = _globalData.Initialize();
+            await _globalData.Initialize();
+            _logger.Info("Initializer", "核心数据已初始化");
             // 初始化对象管理器
-            ValueTask t2 =_serviceManager.Initialize();
-            await t1;
-            await t2;
-            Console.WriteLine("初始化已完成");
+            await _serviceManager.Initialize();
+            _logger.Info("Initializer", "对象管理器已初始化");
 
-            _dataCenter.Initialize(_globalData.RootDic+_globalData.Setting.FileConfig.RepositoryRoot);
+            // 初始化文件管理器
+            _dataCenter.Initialize(_globalData.Setting,_globalData.RootDic);
+            // 扫描所有文件
             await _dataCenter.ScanFile();
+            _logger.Info("Initializer", "文件系统已初始化");
+            #endregion
+            #region 设置信息
+            // 加载回复词
+            await _globalData.LoadReturnWord();
+            _logger.Info("Initializer", "回复词表已初始化");
+            #endregion
+            await _messagePipeline.Initialize(_globalData.Test);
+            _logger.Info("Initializer", "消息处理管线已初始化");
 
+            ThreadPool.SetMinThreads(5, 5);
+            ThreadPool.SetMaxThreads(_globalData.Setting.UserConfig.MaxThreadCount+10, _globalData.Setting.UserConfig.MaxThreadCount + 10);
+            _logger.Info("Initializer", "线程池已初始化");
+
+            Task.Delay(1000).Wait();
+            _logger.Info("Initializer", "初始化已完成");
 
             if (_globalData.Test == 0) {
+                _logger.Info("Initializer", "开始启动客户端服务");
                 string uri = $"ws://{_globalData.Setting.ServerConfig.Location}:{_globalData.Setting.ServerConfig.Port}";
                 await _clientConnector.RunServer(uri);
             } else {
-                var service = (IEventManager)_serviceProvider.GetService(typeof(IEventManager));
-                _tester.SetHandlePrivateMessage(service.HandlePrivateMessage);
-                _tester.SetHandleGroupMessage(service.HandleGroupMessage);
+                _logger.Info("Initializer", "开始启动测试程序");
+                _tester.SetHandlePrivateMessage(_messagePipeline.RecvPrivateMsg);
+                _tester.SetHandleGroupMessage(_messagePipeline.RecvGroupMsg);
                 await _tester.RunTest();
             }
         }
 
-        public Task StopAsync(CancellationToken token) { 
+        public Task StopAsync(CancellationToken token) {
+            _logger.Info("Initializer", "服务已关闭");
             return Task.CompletedTask;
         }
     }

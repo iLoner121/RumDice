@@ -1,4 +1,5 @@
-﻿using EleCho.GoCqHttpSdk.Action;
+﻿using CSScripting;
+using EleCho.GoCqHttpSdk.Action;
 using Microsoft.Extensions.DependencyInjection;
 using RumDice.Framework;
 using RumDice.Module;
@@ -17,47 +18,55 @@ namespace RumDice.Core {
     public class EventManager : IEventManager {
         readonly ICoreData _globalData;
         readonly IServiceManager _serviceManager;
-        readonly IClientConnector _clientConnector;
+        readonly IServiceProvider _serviceProvider;
+        readonly IRumLogger _logger;
 
         readonly int _minPriority;
         readonly int _maxPriority;
 
+        IMessagePipeline _messagePipeline;
+
 
         public EventManager(ICoreData globalData,
             IServiceManager serviceManager,
-            IClientConnector clientConnector) {
+            IServiceProvider serviceProvider,
+            IRumLogger logger) {
             _globalData = globalData;
             _serviceManager = serviceManager;
-            _clientConnector = clientConnector;
 
-            _minPriority=globalData.MinPriority;
-            _maxPriority=globalData.MaxPriority;
+            _minPriority = globalData.MinPriority;
+            _maxPriority = globalData.MaxPriority;
+            _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         public async void HandlePrivateMessage(Post post) {
+            await Task.Delay(0);
+            _logger.Debug("EventManager","消息已接收->私聊");
             var baseMsg = (BaseMessage)post;
             MethodInfo method;
             bool isMatch = MatchFunc(baseMsg.Msg, 1, out method);
 
             if (isMatch) {
-                Console.WriteLine("已匹配到关键词");
+                _logger.Info("EventManager", "指令已匹配->私聊");
                 Invoke(method, post);
             } else {
-                Console.WriteLine("未匹配到关键词");
+                _logger.Debug("EventManager", "指令未匹配->私聊");
             }
-
         }
 
         public async void HandleGroupMessage(Post post) {
+            await Task.Delay(0);
+            _logger.Debug("EventManager", "消息已接收->群聊");
             var baseMsg = (BaseMessage)post;
             MethodInfo method;
-            bool isMatch = MatchFunc(baseMsg.Msg,3, out method);
+            bool isMatch = MatchFunc(baseMsg.Msg, 3 , out method);
 
             if (isMatch) {
-                Console.WriteLine("已匹配到关键词");
+                _logger.Info("EventManager", "指令已匹配->群聊");
                 Invoke(method, post);
             } else {
-                Console.WriteLine("未匹配到关键词");
+                _logger.Debug("EventManager", "指令未匹配->群聊");
             }
         }
 
@@ -68,32 +77,36 @@ namespace RumDice.Core {
         /// <param name="post"></param>
         /// <returns></returns>
         async ValueTask Invoke(MethodInfo method, Post post) {
-            var service = _serviceManager.GetService(method.DeclaringType);
-            if (service == null) {
-                Console.WriteLine("获取类型失败");
+            try {
+                var service = _serviceManager.GetService(method.DeclaringType);
+                if (service == null) {
+                    _logger.Warn("EventManager", $"获取回复接口服务失败：{method.Name}");
+                    return;
+                }
+
+                var res = method.Invoke(service, new object[] { post });
+                if (res == null) {
+                    _logger.Debug("EventManager", $"未获取该回复接口的返回值：{method.Name}");
+                    return;
+                }
+                if (res is string s) {
+                    await SendMessage(post, s);
+                    return;
+                }
+                if (res is Send send) {
+                    await SendMessage(send);
+                    return;
+                }
+                if (res is List<Send> sends) {
+                    await SendMessage(sends);
+                    return;
+                }
+                _logger.Warn("EventManager", $"该回复接口具备错误的返回格式：{method.Name}");
                 return;
             }
-            
-            var res = method.Invoke(service, new object[] { post });
-            if (res == null) {
-                Console.WriteLine("未获得返回值");
-                return;
-            } 
-            Console.WriteLine(res.GetType().FullName);
-            if(res is string s) {
-                await SendMessage(post,s);
-                return;
+            catch(Exception e) {
+                _logger.Error(e, $"调用接口服务失败：{method.Name}");
             }
-            if(res is Send send) {
-                await SendMessage(send);
-                return;
-            }
-            if(res is List<Send> sends) {
-                await SendMessage(sends);
-                return;
-            }
-            Console.WriteLine("错误的返回类型");
-            return;
         }
 
         /// <summary>
@@ -104,9 +117,7 @@ namespace RumDice.Core {
         /// <returns></returns>
         public bool MatchFunc(string msg,int scopeCheck,out MethodInfo method) {
             method = null;
-            // TODO:匹配reply
 
-            // 匹配复杂方法
             for (int i = _minPriority; i <= _maxPriority; i++) {
                 // 提取对应优先级
                 var innerTempDic = _globalData.MatchTable
@@ -137,16 +148,46 @@ namespace RumDice.Core {
         /// <param name="attributes">KeyWordAttribute列表</param>
         /// <returns></returns>
         bool MatchKeyWord(string message,List<KeyWordAttribute> attributes) {
+            // TODO: 优化代码可读性和效率
+            if (message == null || message.IsEmpty())
+                return false;
+
+            // 保存原始字符串
             string originalMessage = message;
+
+            // 匹配标识符
             bool c1 = true, c2 = true, c3 = true, c4 = true;
             foreach (KeyWordAttribute attribute in attributes) {
-                string[] keywords = attribute.KeyWord.Split(' ');
+                // 判断是否为正则匹配，抵消其他操作
+                if (attribute.IsRegex) {
+                    if (Regex.IsMatch(attribute.KeyWord, message)) {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+
+                // 判断是否大小写敏感，生成对应的匹配素材
+                string kys = attribute.KeyWord;
+                if(!attribute.IsCaseSensitive) {
+                    message = originalMessage.ToLower();
+                    kys = kys.ToLower();
+                }
+
+                string[] keywords = kys.Split(' ');
+                string[] messageSplit = message.Split(' ');
                 c1 = true; c2 = true; c3 = true; c4=true;
                 foreach(string keyword in keywords) {
                     // 是否符合模糊匹配
                     if (c1) {
                         if (message.Contains(keyword)) {
-                            c1 = false;
+                            if (attribute.IsDivided) {
+                                if(messageSplit.Contains(keyword)) {
+                                    c1 = false;
+                                }
+                            }else {
+                                c1 = false;
+                            }
                         }
                     }
                     // 是否符合全匹配
@@ -158,13 +199,25 @@ namespace RumDice.Core {
                     // 是否符合前缀
                     if(attribute.IsPrefix&&c3) {
                         if(message.StartsWith(keyword)) {
-                            c3= false;
+                            if (attribute.IsDivided) {
+                                if (messageSplit.Contains(keyword)) {
+                                    c3 = false;
+                                }
+                            } else {
+                                c3 = false;
+                            }
                         }
                     }
                     // 是否符合后缀
                     if (attribute.IsSuffix && c4) {
                         if(message.EndsWith(keyword)) {
-                            c4 = false;
+                            if (attribute.IsDivided) {
+                                if (messageSplit.Contains(keyword)) {
+                                    c4 = false;
+                                }
+                            } else {
+                                c4 = false;
+                            }
                         }
                     }
                 }
@@ -182,10 +235,10 @@ namespace RumDice.Core {
         /// <param name="s"></param>
         /// <returns></returns>
         async ValueTask SendMessage(Post post,string s) {
-            Console.WriteLine(s);
             var sender=(BaseMessage)post;
             Send send = new();
             send.MsgType=sender.MsgType;
+            send.Msg = s;
             switch (send.MsgType) {
                 case MessageType.Private:
                     send.UserID = ((PrivateMessage)post).UserID;
@@ -196,15 +249,53 @@ namespace RumDice.Core {
                 default:
                     return;
             }
-            send.Msg=sender.Msg;
             SendMessage(new List<Send> { send });
         }
         async ValueTask SendMessage(Send send) {
-            Console.WriteLine(send.ToString());
             SendMessage(new List<Send> { send });
         }
         async ValueTask SendMessage(List<Send> sends) {
-            Console.WriteLine("List<Send>");
+
+            if(_messagePipeline==null) {
+                _messagePipeline = (IMessagePipeline)_serviceProvider.GetService<IMessagePipeline>();
+            }
+            foreach(var send in sends) {
+                send.Msg = UseMyService(send.Msg);
+            }
+            _messagePipeline.SendMsg(sends);
         }   
+
+        /// <summary>
+        /// 替换字符串中的变量
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        string UseMyService(string s) {
+            _logger.Debug("EventManager", "最终回复语句开始处理");
+            var mateches = Regex.Matches(s, @"\{(?<name>.+?)\}")
+                .Cast<Match>()
+                .Select(m => m.Groups["name"].Value)
+                .ToHashSet();
+            foreach (var match in mateches) {
+                string temp = "{" + match + "}";
+                string res = "";
+                foreach(var method in _globalData.ServiceTable) {
+                    if(method.Key.StartsWith(match,StringComparison.OrdinalIgnoreCase)){
+                        var rep = method.Value.MethodInfo.Invoke(_serviceManager.GetService(method.Value.MethodInfo.DeclaringType), new object[] {match }).ToString();
+                        if (rep == null) {
+                            continue;
+                        } 
+                        if(rep is string) {
+                            res = rep;
+                            break;
+                        }
+                    }
+                }
+                _logger.Debug("EventManager", $"在回复语句中识别到 {temp} 指令，将替换为 \"{res}\"");
+                s = s.Replace(temp, res);
+            }
+            _logger.Debug("EventManager", "最终回复语句已经生成");
+            return s;
+        }
     }
 }

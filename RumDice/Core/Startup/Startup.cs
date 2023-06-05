@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -24,6 +26,8 @@ namespace RumDice.Core.Startup {
                         services.AddSingleton<IServiceManager, ServiceManager>();
                         services.AddSingleton<IClientConnector, ClientConnector>();
                         services.AddSingleton<IDataCenter, DataCenter>();
+                        services.AddSingleton<IMessagePipeline, MessagePipeline>();
+                        services.AddSingleton<IRumLogger, RumLogger>();
                         services.AddSingleton<Tester>();
                         
                         // host
@@ -31,10 +35,32 @@ namespace RumDice.Core.Startup {
                     })
                     .Build();
                 await host.StartAsync();
-                Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!");
+                ConsoleColor c = Console.BackgroundColor;
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.BackgroundColor = c;
+                Console.Write($@"[ {DateTime.Now.ToString()} ] | ");
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.BackgroundColor = ConsoleColor.DarkGreen;
+                Console.Write(@" [Error] ");
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.BackgroundColor = c;
+                Console.WriteLine($"[RumDice]运行结束");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.BackgroundColor = c;
             }
             catch {
-                Console.WriteLine("生成失败");
+                ConsoleColor c = Console.BackgroundColor;
+                Console.ForegroundColor= ConsoleColor.Red;
+                Console.BackgroundColor= c;
+                Console.Write($@"[ {DateTime.Now.ToString()} ] | ");
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.Write(@" [Error] ");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.BackgroundColor = c;
+                Console.WriteLine($"[RumDice]生成失败");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.BackgroundColor = c;
             }
         }
     }

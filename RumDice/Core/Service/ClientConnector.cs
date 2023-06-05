@@ -12,9 +12,11 @@ namespace RumDice.Core {
     public class ClientConnector : IClientConnector {
         public CqWsSession Session { get; set; } 
         readonly IServiceProvider _serviceProvider;
+        readonly IRumLogger _logger;
 
-        public ClientConnector(IServiceProvider serviceProvider) { 
+        public ClientConnector(IServiceProvider serviceProvider,IRumLogger rumLogger) { 
             _serviceProvider = serviceProvider;
+            _logger = rumLogger;
         }
 
         public async ValueTask SendPrivateMsg(Send send) {
@@ -60,10 +62,8 @@ namespace RumDice.Core {
                 message.AnonymousName= context.Anonymous.Name;
                 message.Flag=context.Anonymous.Flag;
 
-                Console.WriteLine(message.Msg);
                 #endregion
-                _serviceProvider.GetRequiredService<IEventManager>().HandleGroupMessage(message);
-                //_eventManager.HandleGroupMessage(message);
+                _serviceProvider.GetRequiredService<IMessagePipeline>().RecvGroupMsg(message);
                 next();
             });
 
@@ -89,15 +89,12 @@ namespace RumDice.Core {
                 message.Age = context.Sender.Age;
 
                 message.TempSource = (int)context.TempSource;
-                Console.WriteLine(message.Msg);
 
-                _serviceProvider.GetRequiredService<IEventManager>().HandlePrivateMessage(message);
+                _serviceProvider.GetRequiredService<IMessagePipeline>().RecvGroupMsg(message);
                 //_eventManager.HandlePrivateMessage(message);
                 next();
             });
-            Console.WriteLine("1");
             await Session.RunAsync();
-            Console.WriteLine("1");
             return;
         }
     }

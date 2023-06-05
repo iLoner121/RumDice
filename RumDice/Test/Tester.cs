@@ -18,10 +18,34 @@ namespace RumDice.Test {
         }
 
         public async ValueTask RunTest() {
-            var post=new PrivateMessage();
-            post.Msg = "echo xxfadafdfas";
-            _handlePrivateMessage(post);
+            for(int i = 0; i < 100; i++) {
+                var post = new GroupMessage();
+                
+                switch (new Random().Next(1,6)) {
+                    case 1:
+                        post.Msg = "Echo echo测试信息" + i;
+                        break;
+                    case 2:
+                        post.Msg = ".prefixt 测试" + i;
+                        break;
+                    case 3:
+                        post.Msg = ".prefixtest 测试" + i;
+                        break;
+                    case 4:
+                        post.Msg = "replytest test" + i;
+                        break;
+                    case 5:
+                        post.Msg = "replytest";
+                        break;
+                    default:
+                        break;
 
+                }
+                Console.WriteLine(post.Msg);
+                post.MsgType = MessageType.Group;
+                _handleGroupMessage(post);
+            }
+            Task.Delay(10000).Wait();
             return;
         }
     }

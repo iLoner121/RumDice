@@ -48,7 +48,9 @@ namespace RumDice.Framework {
 
         Dictionary<string,Type> _classTable;
 
-        public ServiceManager() {
+        readonly IRumLogger _logger;
+
+        public ServiceManager(IRumLogger logger) {
             _singletonTable = new();
             _countedTable = new();
             _timedTable = new();
@@ -57,6 +59,7 @@ namespace RumDice.Framework {
             _maxCheckTable = new();
             _interfaceTable = new();
             _classTable = new();
+            _logger = logger;
         }
 
 
@@ -73,11 +76,11 @@ namespace RumDice.Framework {
                         continue;
                     }
                     if (_interfaceTable.ContainsKey(interf)) {
-                        Console.WriteLine("类别添加失败：重复的接口或类别");
+                        _logger.Warn("ServiceManager", "+++类别添加失败：重复的接口或类别");
                         return;
                     }
                     SetTransient(interf,assembly);
-                    Console.WriteLine($"已将{interf.Name},{assembly.Name}加入对象管理器");
+                    _logger.Debug("ServiceManager", $"+++已将{interf.Name},{assembly.Name}加入对象管理器");
                 }
             }
 
@@ -89,11 +92,11 @@ namespace RumDice.Framework {
                     continue;
                 }
                 if (_classTable.ContainsKey(assembly.Name)) {
-                    Console.WriteLine("类别添加失败：重复的接口或类别");
+                    _logger.Warn("ServiceManager", "+++类别添加失败：重复的接口或类别");
                     continue;
                 }
                 _classTable.Add(assembly.Name, assembly);
-                Console.WriteLine($"已将{assembly.Name}加入对象管理器");
+                _logger.Debug("ServiceManager", $"+++已将{assembly.Name}加入对象管理器");
             }
         }
 
@@ -105,11 +108,11 @@ namespace RumDice.Framework {
         /// <returns></returns>
         bool SetService(Type interfaceType,Type serviceType, ServiceType t) {
             if (_typeCheckTable.ContainsKey(serviceType.Name)) {
-                Console.WriteLine("服务设置失败：已经设置过该服务");
+                _logger.Warn("ServiceManager", "+++服务设置失败：已经设置过该服务");
                 return false;
             }
             if (_interfaceTable.ContainsKey(interfaceType)) {
-                Console.WriteLine("服务设置失败：已经设置过相同接口的服务");
+                _logger.Warn("ServiceManager", "+++服务设置失败：已经设置过相同接口的服务");
                 return false;
             }
             _typeCheckTable.Add(serviceType.Name, t);
@@ -130,8 +133,8 @@ namespace RumDice.Framework {
                 _singletonTable.Add(type.Name, instance);
                 return instance;
             }
-            catch {
-                Console.WriteLine("生成对象失败");
+            catch(Exception ex) {
+                _logger.Error(ex, "+++生成对象失败");
             }
             return null;
         }
@@ -145,8 +148,8 @@ namespace RumDice.Framework {
                 var instance = Activator.CreateInstance(type);
                 return instance;
             }
-            catch {
-                Console.WriteLine("生成对象失败");
+            catch(Exception ex) {
+                _logger.Error(ex, "+++生成对象失败");
             }
             return null;
         }
@@ -177,12 +180,12 @@ namespace RumDice.Framework {
             Type t = type;
             if (type.IsInterface) {
                 if (!_interfaceTable.ContainsKey(type)) {
-                    Console.WriteLine($"服务获取失败：未设置过该服务{t.Name}");
+                    _logger.Warn("ServiceManager", $"+++服务获取失败：未设置过该服务{t.Name}");
                 }
                 t = _interfaceTable[type];
             }
             if (!_typeCheckTable.ContainsKey(t.Name)) {
-                Console.WriteLine($"服务获取失败：未设置过该服务{t.Name}");
+                _logger.Warn("ServiceManager", $"+++服务获取失败：未设置过该服务{t.Name}");
                 return null;
             }
             switch (_typeCheckTable[t.Name]) {
@@ -201,8 +204,10 @@ namespace RumDice.Framework {
         }
 
         public object GetStruct(string name,out Type type) {
+            type = null;
             if (!_classTable.ContainsKey(name)) {
-                Console.WriteLine("未找到类型");
+                _logger.Warn("ServiceManager", "+++未找到该自定义存储类型");
+                return null;
             }
             type= _classTable[name];
             return Activator.CreateInstance(_classTable[name]);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -42,5 +43,20 @@ namespace RumDice.Framework {
         /// <param name="post"></param>
         /// <returns></returns>
         List<Send> MakeSends(List<string> msgs, Post post);
+
+        /// <summary>
+        /// 生成输出语句
+        /// </summary>
+        /// <param name="fullname">该方法的全名:namespace.class.method (该方法必须被声明为回复接口)</param>
+        /// <param name="paramList">参数列表（取决于回复json中的标记）</param>
+        /// <returns></returns>
+        string GenerateMessage(string fullname, List<string> paramList);
+        /// <summary>
+        /// 生成输出语句
+        /// </summary>
+        /// <param name="fullname">该方法的全名:namespace.class.method (该方法必须被声明为回复接口)</param>
+        /// <param name="paramList">参数列表（取决于回复json中的标记）</param>
+        /// <returns></returns>
+        string GenerateMessage(string fullname, Dictionary<string,string> paramList);
     }
 }

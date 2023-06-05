@@ -9,13 +9,21 @@ namespace RumDice.Core {
     /// <summary>
     /// 信息发送管道
     /// </summary>
-    public interface ISendPipeline {
+    public interface IMessagePipeline {
+
+        ValueTask Initialize(int mode);
 
         /// <summary>
         /// 发送信息
         /// </summary>
         /// <param name="sends"></param>
         /// <returns></returns>
-        public bool SendMsg(List<Send> sends);
+        void SendMsg(List<Send> sends);
+
+        
+        void RecvMsg(Post post,AllType type);
+
+        void RecvPrivateMsg(Post post);
+        void RecvGroupMsg(Post post);
     }
 }
