@@ -272,27 +272,37 @@ namespace RumDice.Core {
         /// <returns></returns>
         string UseMyService(string s) {
             _logger.Debug("EventManager", "最终回复语句开始处理");
-            var mateches = Regex.Matches(s, @"\{(?<name>.+?)\}")
-                .Cast<Match>()
-                .Select(m => m.Groups["name"].Value)
-                .ToHashSet();
-            foreach (var match in mateches) {
-                string temp = "{" + match + "}";
-                string res = "";
-                foreach(var method in _globalData.ServiceTable) {
-                    if(method.Key.StartsWith(match,StringComparison.OrdinalIgnoreCase)){
-                        var rep = method.Value.MethodInfo.Invoke(_serviceManager.GetService(method.Value.MethodInfo.DeclaringType), new object[] {match }).ToString();
-                        if (rep == null) {
-                            continue;
-                        } 
-                        if(rep is string) {
-                            res = rep;
-                            break;
+            string pattern = @"\{(?<name>.+?)\}";
+            HashSet<string>? matches = new HashSet<string>();
+            int count = 0;
+            while (!(matches=Regex.Matches(s, pattern).Cast<Match>().Select(m => m.Groups["name"].Value).ToHashSet()).IsEmpty()) {
+                foreach (var match in matches) {
+                    string temp = "{" + match + "}";
+                    string res = "";
+                    foreach (var method in _globalData.ServiceTable) {
+                        if (method.Key.StartsWith(match, StringComparison.OrdinalIgnoreCase)) {
+                            string? rep = null;
+
+                            try {
+                                var service = _serviceManager.GetService(method.Value.MethodInfo.DeclaringType);
+                                rep = method.Value.MethodInfo.Invoke(service, new object[] { match }).ToString();
+                            }
+                            catch (Exception ex) {
+                                _logger.Error(ex, "内置服务调用失败");
+                            }
+
+                            if (rep == null) {
+                                continue;
+                            }
+                            if (rep is string) {
+                                res = rep;
+                                break;
+                            }
                         }
                     }
+                    _logger.Debug("EventManager", $"在回复语句中识别到 {temp} 指令，将替换为 \"{res}\"");
+                    s = s.Replace(temp, res);
                 }
-                _logger.Debug("EventManager", $"在回复语句中识别到 {temp} 指令，将替换为 \"{res}\"");
-                s = s.Replace(temp, res);
             }
             _logger.Debug("EventManager", "最终回复语句已经生成");
             return s;

@@ -41,7 +41,7 @@ namespace RumDice.Core.Startup {
                 Console.Write($@"[ {DateTime.Now.ToString()} ] | ");
                 Console.ForegroundColor = ConsoleColor.Black;
                 Console.BackgroundColor = ConsoleColor.DarkGreen;
-                Console.Write(@" [Error] ");
+                Console.Write(@" [Info] ");
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.BackgroundColor = c;
                 Console.WriteLine($"[RumDice]运行结束");
@@ -55,7 +55,7 @@ namespace RumDice.Core.Startup {
                 Console.Write($@"[ {DateTime.Now.ToString()} ] | ");
                 Console.ForegroundColor = ConsoleColor.Black;
                 Console.BackgroundColor = ConsoleColor.Red;
-                Console.Write(@" [Error] ");
+                Console.Write(@" [Fatal] ");
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.BackgroundColor = c;
                 Console.WriteLine($"[RumDice]生成失败");
