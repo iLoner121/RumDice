@@ -12,14 +12,14 @@ namespace RumDice.Module {
         /// </summary>
         /// <param name="post">必须声明为Post类型的参数</param>
         /// <returns>可以返回void, string, Send, List\<Send\>作为发信内容</returns>
-        public string TestEcho(Post post) {
+        public Send TestEcho(Post post) {
             // 用显式将post转换为各种Message格式（详见文档内的各种内置格式的说明）
             var baseMessage = (BaseMessage)post;
 
-            // 处理消息
-            string msg = baseMessage.Msg;
-            int index = msg.IndexOf('o');
-            string echo = msg.Remove(0, index + 1);
+            // 利用MessageTool处理信息
+            IMessageTool messageTool = new MessageTool();
+            string echo = messageTool.GetMsgWithoutPrefix(post, "echo");
+
 
             /* 
              *使用MessageTool的GenerateMessage方法生成消息
@@ -42,11 +42,11 @@ namespace RumDice.Module {
             string word = returnWords.table["RumDice.Module.IExample.TestEcho"];
             logger.Debug("echo", $"echo测试程序默认的返回词是：{word}");
 
-            DataCenter.Instance.GetObj("xx");
-
+            // MessageTool可以根据post的类型自动制作相应的回复包（群聊/私聊）
+            Send send = messageTool.MakeSend(echo, post);
 
             // 返回消息
-            return echo;
+            return send;
         }
 
         public void TestKeyWord1(Post post) {

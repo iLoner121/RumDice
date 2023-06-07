@@ -293,7 +293,6 @@ namespace RumDice.Core {
 
 
         public async ValueTask LoadReturnWord() {
-            bool change = false;
             ReturnWordTable returnWordTable = new();
             // 尝试获取官方回复词表
             if (_dataCenter.TryGetObj(Setting.FileConfig.ReturnWordTable, out object obj)) {
@@ -301,7 +300,11 @@ namespace RumDice.Core {
                     returnWordTable = (ReturnWordTable)obj;
                 }
             } else {
-                change = true;
+                if(_dataCenter.TryGetObj(Setting.FileConfig.ReturnWordBackup,out object backup)) {
+                    if(backup is ReturnWordTable) {
+                        returnWordTable = (ReturnWordTable)backup;
+                    }
+                }
             }
             // 设置remark
             returnWordTable.remark = returnWordTable.remark==null?"所有接口的回复词":returnWordTable.remark;
@@ -310,35 +313,13 @@ namespace RumDice.Core {
                 if(returnWordTable.table.ContainsKey(name)) {
                     continue;
                 }
-                change = true;
                 returnWordTable.table.Add(name, "{0}");
             }
-            // 获取所有回复词表
-            List<ReturnWordTable> tables = new();
-            var tableList = _dataCenter.GetByType(typeof(ReturnWordTable).ToString());
-            foreach(ReturnWordTable table in tableList) {
-                if(!table.remark.Equals(returnWordTable.remark)) {
-                    tables.Add(table);
-                }
-            }
-            // 合并所有回复词表（以非官方的优先）
-            foreach(var table in tables) {
-                foreach(var name in table.table.Keys) {
-                    if(!returnWordTable.table.ContainsKey(name)) {
-                        change = true;
-                        returnWordTable.table.Add(name, table.table[name]);
-                    } else {
-                        if (returnWordTable.table[name].Equals(table.table[name]))
-                            continue;
-                        change = true;
-                        returnWordTable.table[name] = table.table[name];
-                    }
-                }
-            }
+            Console.WriteLine("1");
             // 存储回复词表
-            if (change) {
-                _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable , 3);
-            }
+            _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable , 3);
+            _dataCenter.SaveFile(returnWordTable,Setting.FileConfig.ReturnWordBackup , 1);
+
         }
     }
 }

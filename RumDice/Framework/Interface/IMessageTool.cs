@@ -27,8 +27,9 @@ namespace RumDice.Framework {
         /// 获取消息文本（去前缀）
         /// </summary>
         /// <param name="post"></param>
+        /// <param name="prefix">前缀指令（不要在前面带.和。）</param>
         /// <returns></returns>
-        string GetMsgWithoutPrefix(Post post);
+        string GetMsgWithoutPrefix(Post post,string prefix);
         /// <summary>
         /// 制作回信包
         /// </summary>

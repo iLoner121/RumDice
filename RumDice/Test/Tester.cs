@@ -41,11 +41,10 @@ namespace RumDice.Test {
                         break;
 
                 }
-                Console.WriteLine(post.Msg);
                 post.MsgType = MessageType.Group;
                 _handleGroupMessage(post);
             }
-            Task.Delay(10000).Wait();
+            Task.Delay(100000).Wait();
             return;
         }
     }

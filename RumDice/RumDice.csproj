@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Log\**" />
+    <EmbeddedResource Remove="Log\**" />
+    <None Remove="Log\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Core\Service\5q0bi2vo.bqj~" />
     <None Remove="Framework\Datatype\StringMap.cs~RF1b5b2b8.TMP" />
   </ItemGroup>
@@ -21,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Log\" />
     <Folder Include="Repository\System\Data\UserData\" />
     <Folder Include="Repository\Plugin\" />
     <Folder Include="Repository\System\Data\" />

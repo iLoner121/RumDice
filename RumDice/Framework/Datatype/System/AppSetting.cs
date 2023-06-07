@@ -66,18 +66,19 @@ namespace RumDice.Framework {
         /// <summary>
         /// 储存器根目录
         /// </summary>
-        public string RepositoryRoot { get; set; } = "\\Repository";
+        public string RepositoryRoot { get; set; } = "\\File";  // 项目根目录
         /// <summary>
         /// 系统回复词表格
         /// </summary>
         public string ReturnWordTable { get; set; } = "\\System\\Text\\ReturnWordTable.json";
+        public string ReturnWordBackup { get; set; } = "\\System\\Text\\ReturnWordBackup.json";
     }
 
     public class LoggerConfig {
         /// <summary>
         /// Log默认存储文件夹（在根目录下，也就是和AppSetting的位置同级）
         /// </summary>
-        public string Location { get; set; } = "\\Log";
+        public string Location { get; set; } = "\\File\\Log";
         /// <summary>
         /// 最低处理等级（低于此等级的log将不会被显示和处理）
         /// </summary>

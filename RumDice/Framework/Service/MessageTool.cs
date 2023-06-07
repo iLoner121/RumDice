@@ -39,20 +39,51 @@ namespace RumDice.Framework {
             return baseMsg.MsgType;
         }
 
-        public string GetMsgWithoutPrefix(Post post) {
-            throw new NotImplementedException();
+        public string GetMsgWithoutPrefix(Post post,string prefix) {
+            BaseMessage baseMsg = (BaseMessage)post;
+            string msg=baseMsg.Msg;
+            int index=msg.IndexOf(prefix,StringComparison.OrdinalIgnoreCase);
+            int finalIndex=-1;
+            for(int i = index + prefix.Length; i < msg.Length; i++) {
+                if (msg[i] == ' ') continue;
+                finalIndex = i;
+                break;
+            }
+            if (finalIndex == -1) return "";
+            return msg.Substring(finalIndex);
         }
 
         public string GetTextMsg(Post post) {
-            throw new NotImplementedException();
+            BaseMessage baseMsg = (BaseMessage)post;
+            string msg = baseMsg.Msg;
+            return msg;
         }
 
         public Send MakeSend(string msg, Post post) {
-            throw new NotImplementedException();
+            var send = new Send();
+            send.Msg = msg;
+            send.MsgType=GetMsgType(post);
+            switch (send.MsgType) {
+                case MessageType.Private:
+                    var pm=(PrivateMessage)post;
+                    send.UserID = pm.UserID;
+                    break;
+                case MessageType.Group:
+                    var gm=(GroupMessage)post;
+                    send.GroupID = gm.GroupID;
+                    break;
+                default:
+                    break;
+            }
+            return send;
         }
 
         public List<Send> MakeSends(List<string> msgs, Post post) {
-            throw new NotImplementedException();
+            var res = new List<Send>();
+            foreach (string msg in msgs) {
+                res.Add(MakeSend(msg, post));
+            }
+            return res;
         }
     }
 }

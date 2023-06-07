@@ -9,6 +9,16 @@ namespace RumDice.Module {
     [MyClass]
     public interface IExample {
         /// <summary>
+        /// 测试接口（返回string）
+        /// </summary>
+        /// <param name="post"></param>
+        /// <returns></returns>
+        [PrefixMatch("echo")]
+        [IsPrivate]
+        Send TestEcho(Post post);
+
+
+        /// <summary>
         /// 测试接口（无返回值）
         /// </summary>
         /// <param name="post"></param>
@@ -32,15 +42,8 @@ namespace RumDice.Module {
         [Reply("replytest")]
         List<Send> TestKeyWord3(Post post);
 
-        /// <summary>
-        /// 测试接口（返回string）
-        /// </summary>
-        /// <param name="post"></param>
-        /// <returns></returns>
-        [PrefixMatch("echo")] 
-        [IsPrivate]
-        string TestEcho(Post post);
 
+        // 声明内置服务
         [MyService("echotest")]
         string EchoTest(string s);
 

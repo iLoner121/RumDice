@@ -81,7 +81,15 @@ namespace RumDice.Framework {
                 return null;
             }
             // 读取文件
-            string JsonString = File.ReadAllText(path, Encoding.UTF8);
+            string JsonString=null;
+            try {
+                JsonString = File.ReadAllText(path, Encoding.UTF8);
+            }
+            catch(Exception ex) {
+                _logger.Error(ex, "读取文件错误");
+                return null;
+            }
+           
             JObject jObj = JObject.Parse(JsonString);
             try {
                 // 如果json中没有标明类型则返回null
@@ -116,7 +124,7 @@ namespace RumDice.Framework {
             int readType = -1;
             Type type = null;
             var tempObj = ReadFile(fullName, out readType, out type);
-            // 读取失败继续循环
+            // 读取失败
             if (tempObj == null)
                 return false;
 
@@ -244,7 +252,6 @@ namespace RumDice.Framework {
             if (FileTable.ContainsKey(path)) {
                 // 文件类型不匹配
                 if (FileTable[path].ObjType != type) {
-                    Console.WriteLine("存储失败");
                     return false;
                 }
                 if (readType == -1)
@@ -288,6 +295,10 @@ namespace RumDice.Framework {
                 }
                 jsonString= JsonConvert.SerializeObject(jObj);
 
+                if (File.Exists(FileTable[path].Location)) {
+                    File.Delete(FileTable[path].Location);
+                }
+
                 // 写入文件
                 _logger.Debug("DataCenter","开始向硬盘写入文件");
                 FileStream fs = new FileStream(FileTable[path].Location, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
@@ -314,6 +325,9 @@ namespace RumDice.Framework {
         }
 
         public async ValueTask ScanFile() {
+            if (!Directory.Exists(_root)) {
+                Directory.CreateDirectory(_root);
+            }
             // 获取所有.json文件
             DirectoryInfo dir = new DirectoryInfo(_root);
             var files = dir.GetFiles("*.json", System.IO.SearchOption.AllDirectories);
