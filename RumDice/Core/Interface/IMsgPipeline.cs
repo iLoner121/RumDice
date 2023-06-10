@@ -25,5 +25,18 @@ namespace RumDice.Core {
 
         void RecvPrivateMsg(Post post);
         void RecvGroupMsg(Post post);
+        void RecvFriendRecallNotice(Post post);
+        void RecvGroupRecallNotice(Post post);
+        void RecvGroupIncreaseNotice(Post post);
+        void RecvGroupDecreaseNotice(Post post);
+        void RecvGroupAdminNotice(Post post);
+        void RecvGroupBanNotice(Post post);
+        void RecvFriendAddNotice(Post post);
+        void RecvGroupPokeNotice(Post post);
+        void RecvHonorNotice(Post post);
+        void RecvTitleNotice(Post post);
+        void RecvGroupCardNotice(Post post);
+        void RecvFriendRequest(Post post);
+        void RecvGroupRequest(Post post);
     }
 }

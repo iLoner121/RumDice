@@ -49,6 +49,9 @@ namespace RumDice.Module {
         [Reply("德洛莉丝！")]
         string TestDolores(Post post);
 
+        [Listen(AllType.GroupRecall)]
+        Send RecallTest(Post post);
+
 
         // 声明内置服务
         [MyService("echotest")]

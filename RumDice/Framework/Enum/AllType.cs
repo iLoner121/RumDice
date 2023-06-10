@@ -6,7 +6,23 @@ using System.Threading.Tasks;
 
 namespace RumDice.Framework {
     public enum AllType : int{
-        PrivateMessage = 1,
-        GroupMessage = 2,
+        Post = 0,  
+        Msg = 1,  
+        PrivateMsg = 2,
+        GroupMsg = 3,
+        FriendRecall = 5,
+        GroupRecall = 6,
+        GroupIncrease = 7,
+        GroupDecrease = 8,
+        GroupAdmin = 9,
+        GroupBan = 11,
+        FriendAdd = 12,
+        GroupPoke = 13,
+        Honor =15,
+        Title = 16,
+        GroupCard = 17,
+        FriendRequest = 18,
+        GroupRequest = 19,
+
     }
 }

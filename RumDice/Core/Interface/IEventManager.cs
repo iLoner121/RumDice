@@ -7,6 +7,9 @@ using RumDice.Framework;
 
 namespace RumDice.Core {
     public interface IEventManager {
+        void HandleEvent(AllType type, Post post);
+
+
         /// <summary>
         /// 处理群聊消息
         /// </summary>

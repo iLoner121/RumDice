@@ -40,6 +40,19 @@ namespace RumDice.Core {
             _logger = logger;
         }
 
+        public async void HandleEvent(AllType type, Post post) {
+            if (!_globalData.ListenerTable.ContainsKey(type)) {
+                _logger.Debug("EventManager", "该事件无对应监听");
+                return;
+            }
+            _logger.Info("EventManager", $"已接到{type.ToString()}类型事件，开始分发");
+            foreach(var mi in _globalData.ListenerTable[type]) {
+                Invoke(mi.MethodInfo, post);
+            }
+            return;
+        }
+
+
         public async void HandlePrivateMessage(Post post) {
             await Task.Delay(0);
             _logger.Debug("EventManager","消息已接收->私聊");
@@ -79,16 +92,19 @@ namespace RumDice.Core {
         async ValueTask Invoke(MethodInfo method, Post post) {
             try {
                 var service = _serviceManager.GetService(method.DeclaringType);
+
                 if (service == null) {
                     _logger.Warn("EventManager", $"获取回复接口服务失败：{method.Name}");
                     return;
                 }
 
                 var res = method.Invoke(service, new object[] { post });
+                Console.WriteLine("1");
                 if (res == null) {
                     _logger.Debug("EventManager", $"未获取该回复接口的返回值：{method.Name}");
                     return;
                 }
+                Console.WriteLine(res.ToString()+" "+res.GetType());
                 if (res is string s) {
                     await SendMessage(post, s);
                     return;

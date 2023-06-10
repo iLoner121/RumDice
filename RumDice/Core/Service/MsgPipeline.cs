@@ -69,13 +69,21 @@ namespace RumDice.Core {
                 }
                 // 转发消息
                 switch (item.type) {
-                    case AllType.PrivateMessage:
+                    case AllType.PrivateMsg:
+                        _eventManager.HandleEvent(AllType.PrivateMsg,item.post);
+                        _eventManager.HandleEvent(AllType.Msg, item.post);
+                        _eventManager.HandleEvent(AllType.Post, item.post);
                         _eventManager.HandlePrivateMessage(item.post);
                         break;
-                    case AllType.GroupMessage:
+                    case AllType.GroupMsg:
+                        _eventManager.HandleEvent(AllType.GroupMsg, item.post);
+                        _eventManager.HandleEvent(AllType.Msg, item.post);
+                        _eventManager.HandleEvent(AllType.Post, item.post);
                         _eventManager.HandleGroupMessage(item.post);
                         break;
                     default:
+                        _eventManager.HandleEvent(AllType.Post,item.post);
+                        _eventManager.HandleEvent(item.type, item.post);
                         break;
                 }
             }
@@ -120,8 +128,8 @@ namespace RumDice.Core {
                     _sendQueue.Enqueue(send);
                 }
             }
-            catch {
-
+            catch(Exception ex) {
+                _logger.Error(ex, "加入发信队列失败");
             }
         }
 
@@ -129,16 +137,70 @@ namespace RumDice.Core {
             try {
                 _recvQueue.Enqueue((type,post));
             }
-            catch {
+            catch (Exception ex) {
+                _logger.Error(ex, "加入收信队列失败");
             }
         }
 
         public void RecvPrivateMsg(Post post) {
-            RecvMsg(post, AllType.PrivateMessage);
+            RecvMsg(post, AllType.PrivateMsg);
         }
 
         public void RecvGroupMsg(Post post) {
-            RecvMsg(post, AllType.GroupMessage);
+            RecvMsg(post, AllType.GroupMsg);
         }
+
+        public void RecvFriendRecallNotice(Post post) {
+            RecvMsg(post, AllType.FriendRecall);
+        }
+
+        public void RecvGroupRecallNotice(Post post) {
+            RecvMsg(post, AllType.GroupRecall);
+        }
+
+        public void RecvGroupIncreaseNotice(Post post) {
+            RecvMsg (post, AllType.GroupIncrease);
+        }
+
+        public void RecvGroupDecreaseNotice(Post post) {
+            RecvMsg(post, AllType.GroupDecrease);
+        }
+
+        public void RecvGroupAdminNotice(Post post) {
+            RecvMsg(post, AllType.GroupAdmin);
+        }
+
+        public void RecvGroupBanNotice(Post post) {
+            RecvMsg(post, AllType.GroupBan);
+        }
+
+        public void RecvFriendAddNotice(Post post) {
+            RecvMsg(post, AllType.FriendAdd);
+        }
+
+        public void RecvGroupPokeNotice(Post post) {
+            RecvMsg(post, AllType.GroupPoke);
+        }
+
+        public void RecvHonorNotice(Post post) {
+            RecvMsg(post, AllType.Honor);
+        }
+
+        public void RecvTitleNotice(Post post) {
+            RecvMsg(post, AllType.Title);
+        }
+
+        public void RecvGroupCardNotice(Post post) {
+            RecvMsg(post, AllType.GroupCard);
+        }
+
+        public void RecvFriendRequest(Post post) {
+            RecvMsg(post, AllType.FriendRequest);
+        }
+
+        public void RecvGroupRequest(Post post) {
+            RecvMsg(post, AllType.GroupRequest);
+        }
+
     }
 }

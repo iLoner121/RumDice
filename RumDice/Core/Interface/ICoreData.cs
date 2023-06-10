@@ -45,6 +45,12 @@ namespace RumDice.Core {
         Dictionary<string, MyMethodInfo> ServiceTable { get; }
 
         /// <summary>
+        /// 服务监听表格
+        /// </summary>
+        Dictionary<AllType, List<MyMethodInfo>> ListenerTable { get; }
+
+
+        /// <summary>
         /// 最小（高）优先级
         /// </summary>
         public int MinPriority { get; }

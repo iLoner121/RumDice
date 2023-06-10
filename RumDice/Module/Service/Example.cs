@@ -80,6 +80,19 @@ namespace RumDice.Module {
             
         }
 
+        public Send RecallTest(Post post) {
+            var send = new Send();
+            send.Msg = "有人撤回了信息，但是我不告诉你内容是什么";
+            if(post is FriendRecallNotice a) {
+                send.UserID = a.UserID;
+                return send;
+            } else if(post is GroupRecallNotice b ) {
+                send.GroupID=b.GroupID;
+                return send;
+            }
+            return send;
+        }
+
         public string EchoTest(string s) {
             return "很高兴程序运行一切正常";
         }

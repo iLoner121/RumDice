@@ -19,7 +19,7 @@ namespace RumDice.Core {
         public static ICoreData? Instance { get; private set; }
         public int Mode { get; } = 0;
 
-        public int Test { get; } = 1;
+        public int Test { get; } = 0;
         #region Setting
         public string RootDic { get; set; }
 
@@ -30,6 +30,7 @@ namespace RumDice.Core {
         public Dictionary<List<KeyWordAttribute>, string> MatchTable { get; } = new();
         public Dictionary<string, MyMethodInfo> FuncTable { get; } = new();
         public Dictionary<string, MyMethodInfo> ServiceTable { get; } = new();
+        public Dictionary<AllType, List<MyMethodInfo>> ListenerTable { get; } = new();
         public int MinPriority { get; private set; } = 1;
         public int MaxPriority { get; private set; } = 5;
         #endregion
@@ -286,6 +287,35 @@ namespace RumDice.Core {
                     method.Scope = isPrivateAttribute.IsOnlyPrivate ? 3 : 2;
                 } else {
                     method.Scope = 1;
+                }
+            }
+            #endregion
+            #region 设置监听方法
+            foreach (var assembly in assemblys) {
+                if (assembly.GetCustomAttribute(typeof(MyClassAttribute)) is not MyClassAttribute)
+                    continue;
+                // 获取内部方法
+                var methods = assembly.GetMethods();
+                foreach (var method in methods) {
+                    foreach (var att in method.GetCustomAttributes()) {
+                        if (att is not ListenAttribute a)
+                            continue;
+                        try {
+                            if (ListenerTable.ContainsKey(a.Type)) {
+                                var myInfo = new MyMethodInfo(method);
+                                myInfo.Priority = 0;
+                                ListenerTable[a.Type].Add(myInfo);
+                            } else {
+                                var myInfo = new MyMethodInfo(method);
+                                myInfo.Priority = 0;
+                                ListenerTable.Add(a.Type,new List<MyMethodInfo> { myInfo });
+                            }
+                            _logger.Debug("CoreData", "^^^导入监听服务成功");
+                        }
+                        catch (Exception ex) {
+                            _logger.Error(ex, "^^^导入监听服务失败");
+                        }
+                    }
                 }
             }
             #endregion
