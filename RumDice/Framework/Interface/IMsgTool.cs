@@ -10,13 +10,13 @@ namespace RumDice.Framework {
     /// 处理信息的辅助类
     /// </summary>
     [MyClass]
-    public interface IMessageTool {
+    public interface IMsgTool {
         /// <summary>
         /// 获取消息类型
         /// </summary>
         /// <param name="post"></param>
         /// <returns></returns>
-        MessageType GetMsgType(Post post);
+        MsgType GetMsgType(Post post);
         /// <summary>
         /// 获取消息文本
         /// </summary>
@@ -43,7 +43,7 @@ namespace RumDice.Framework {
         /// <param name="msgs"></param>
         /// <param name="post"></param>
         /// <returns></returns>
-        List<Send> MakeSends(List<string> msgs, Post post);
+        List<Send> MakeSend(List<string> msgs, Post post);
 
         /// <summary>
         /// 生成输出语句
@@ -51,13 +51,13 @@ namespace RumDice.Framework {
         /// <param name="fullname">该方法的全名:namespace.class.method (该方法必须被声明为回复接口)</param>
         /// <param name="paramList">参数列表（取决于回复json中的标记）</param>
         /// <returns></returns>
-        string GenerateMessage(string fullname, List<string> paramList);
+        string GenerateMsg(string fullname, List<string> paramList);
         /// <summary>
         /// 生成输出语句
         /// </summary>
         /// <param name="fullname">该方法的全名:namespace.class.method (该方法必须被声明为回复接口)</param>
         /// <param name="paramList">参数列表（取决于回复json中的标记）</param>
         /// <returns></returns>
-        string GenerateMessage(string fullname, Dictionary<string,string> paramList);
+        string GenerateMsg(string fullname, Dictionary<string,string> paramList);
     }
 }

@@ -7,8 +7,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RumDice.Framework {
-    public class MessageTool : IMessageTool {
-        public string GenerateMessage(string fullname, List<string> paramList) {
+    public class MsgTool : IMsgTool {
+        public string GenerateMsg(string fullname, List<string> paramList) {
             var returnWord = ((ReturnWordTable)DataCenter.Instance.GetObj(CoreData.Instance.Setting.FileConfig.ReturnWordTable)).table[fullname];
             for(int i = 0; i < paramList.Count; i++) {
                 string temp = "{" + i + "}";
@@ -21,7 +21,7 @@ namespace RumDice.Framework {
             return returnWord;
         }
 
-        public string GenerateMessage(string fullname, Dictionary<string, string> paramList) {
+        public string GenerateMsg(string fullname, Dictionary<string, string> paramList) {
             var returnWord = ((ReturnWordTable)DataCenter.Instance.GetObj(CoreData.Instance.Setting.FileConfig.ReturnWordTable)).table[fullname];
             foreach(var r in paramList) {
                 string temp = "{" + r.Key + "}";
@@ -34,13 +34,13 @@ namespace RumDice.Framework {
             return returnWord;
         }
 
-        public MessageType GetMsgType(Post post) {
-            BaseMessage baseMsg= (BaseMessage)post;
+        public MsgType GetMsgType(Post post) {
+            BaseMsg baseMsg= (BaseMsg)post;
             return baseMsg.MsgType;
         }
 
         public string GetMsgWithoutPrefix(Post post,string prefix) {
-            BaseMessage baseMsg = (BaseMessage)post;
+            BaseMsg baseMsg = (BaseMsg)post;
             string msg=baseMsg.Msg;
             int index=msg.IndexOf(prefix,StringComparison.OrdinalIgnoreCase);
             int finalIndex=-1;
@@ -54,7 +54,7 @@ namespace RumDice.Framework {
         }
 
         public string GetTextMsg(Post post) {
-            BaseMessage baseMsg = (BaseMessage)post;
+            BaseMsg baseMsg = (BaseMsg)post;
             string msg = baseMsg.Msg;
             return msg;
         }
@@ -64,12 +64,12 @@ namespace RumDice.Framework {
             send.Msg = msg;
             send.MsgType=GetMsgType(post);
             switch (send.MsgType) {
-                case MessageType.Private:
-                    var pm=(PrivateMessage)post;
+                case MsgType.Private:
+                    var pm=(PrivateMsg)post;
                     send.UserID = pm.UserID;
                     break;
-                case MessageType.Group:
-                    var gm=(GroupMessage)post;
+                case MsgType.Group:
+                    var gm=(GroupMsg)post;
                     send.GroupID = gm.GroupID;
                     break;
                 default:
@@ -78,7 +78,7 @@ namespace RumDice.Framework {
             return send;
         }
 
-        public List<Send> MakeSends(List<string> msgs, Post post) {
+        public List<Send> MakeSend(List<string> msgs, Post post) {
             var res = new List<Send>();
             foreach (string msg in msgs) {
                 res.Add(MakeSend(msg, post));

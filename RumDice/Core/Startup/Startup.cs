@@ -26,7 +26,7 @@ namespace RumDice.Core.Startup {
                         services.AddSingleton<IServiceManager, ServiceManager>();
                         services.AddSingleton<IClientConnector, ClientConnector>();
                         services.AddSingleton<IDataCenter, DataCenter>();
-                        services.AddSingleton<IMessagePipeline, MessagePipeline>();
+                        services.AddSingleton<IMsgPipeline, MsgPipeline>();
                         services.AddSingleton<IRumLogger, RumLogger>();
                         services.AddSingleton<Tester>();
                         

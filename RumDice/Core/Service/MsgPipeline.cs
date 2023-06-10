@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
-    public class MessagePipeline : IMessagePipeline {
+    public class MsgPipeline : IMsgPipeline {
         ConcurrentQueue<Send> _sendQueue = new();
         ConcurrentQueue<(AllType type,Post post)> _recvQueue = new();
 
@@ -35,7 +35,7 @@ namespace RumDice.Core {
         Random random = new Random();
 
 
-        public MessagePipeline(ICoreData coreData, IEventManager eventManager, IClientConnector clientConnector, IRumLogger logger) {
+        public MsgPipeline(ICoreData coreData, IEventManager eventManager, IClientConnector clientConnector, IRumLogger logger) {
             this.coreData = coreData;
             _eventManager = eventManager;
             _clientConnector = clientConnector;
@@ -93,11 +93,11 @@ namespace RumDice.Core {
                 if (_mode == 1) {
                     _logger.Info("MessagePipeline", "发信：" + JsonConvert.SerializeObject(item));
                 }
-                if (item.MsgType == MessageType.Group) {
+                if (item.MsgType == MsgType.Group) {
                     _clientConnector.SendGroupMsg(item);
                     continue;
                 }
-                if(item.MsgType==MessageType.Private) {
+                if(item.MsgType==MsgType.Private) {
                     _clientConnector.SendPrivateMsg(item);
                     continue;
                 }

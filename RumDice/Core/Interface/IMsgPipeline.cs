@@ -9,7 +9,7 @@ namespace RumDice.Core {
     /// <summary>
     /// 信息发送管道
     /// </summary>
-    public interface IMessagePipeline {
+    public interface IMsgPipeline {
 
         ValueTask Initialize(int mode);
 

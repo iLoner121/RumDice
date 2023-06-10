@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,10 +15,10 @@ namespace RumDice.Module {
         /// <returns>可以返回void, string, Send, List\<Send\>作为发信内容</returns>
         public Send TestEcho(Post post) {
             // 用显式将post转换为各种Message格式（详见文档内的各种内置格式的说明）
-            var baseMessage = (BaseMessage)post;
+            var baseMessage = (BaseMsg)post;
 
             // 利用MessageTool处理信息
-            IMessageTool messageTool = new MessageTool();
+            IMsgTool messageTool = new MsgTool();
             string echo = messageTool.GetMsgWithoutPrefix(post, "echo");
 
 
@@ -27,7 +28,7 @@ namespace RumDice.Module {
              *当然你也可以绕过这一步，直接返回自己想要的字符串
              *但是我十分建议你用我提供这个方法
             */
-            echo = new MessageTool().GenerateMessage("RumDice.Module.IExample.TestEcho", new List<string> { echo });
+            echo = new MsgTool().GenerateMsg("RumDice.Module.IExample.TestEcho", new List<string> { echo });
 
 
             // 如果我想要调用数据库，比如现在我想要取出系统的回复词表
@@ -54,16 +55,29 @@ namespace RumDice.Module {
         }
 
         public Send TestKeyWord2(Post post) {
-            Send send = new Send();
-            send.Msg = new MessageTool().GenerateMessage("RumDice.Module.IExample.TestKeyWord2", new List<string> { "TestKeyWord2的参数" });
+            var msg = new MsgTool().GenerateMsg("RumDice.Module.IExample.TestKeyWord2", new List<string> { "TestKeyWord2的参数" });
+            var send = new MsgTool().MakeSend(msg, post);
             return send; 
         }
 
         public List<Send> TestKeyWord3(Post post) {
-            Send send = new Send();
+            //Send send = new Send();
             // send.GroupID=11111111111;
-            send.Msg = new MessageTool().GenerateMessage("RumDice.Module.IExample.TestKeyWord2", new List<string> { "TestKeyWord3的参数" });
-            return new List<Send> { send };
+            var msg = new MsgTool().GenerateMsg("RumDice.Module.IExample.TestKeyWord2", new List<string> { "TestKeyWord3的参数" });
+            var sends = new MsgTool().MakeSend(new List<string> { msg }, post);
+            return sends;
+        }
+
+        public string TestDolores(Post post) {
+            var num = new Random().Next(10);
+            string res;
+            if(num%4==0) {
+                res ="喵~";
+            } else {
+                res = "你好！";
+            }
+            return res;
+            
         }
 
         public string EchoTest(string s) {

@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 私聊对话结构
     /// </summary>
-    public class PrivateMessage : BaseMessage{
+    public class PrivateMsg : BaseMsg{
         
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace RumDice.Framework {
         /// <summary>
         /// 当私聊是群临时对话的话，此项不为null
         /// </summary>
-        public long GroupID { get; set; }
+        public long? GroupID { get; set; }
 
 
     }

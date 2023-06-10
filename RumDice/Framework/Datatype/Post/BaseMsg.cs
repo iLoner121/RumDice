@@ -8,15 +8,15 @@ namespace RumDice.Framework {
     /// <summary>
     /// 消息类型的数据包的基础格式。所有Message均包含此数据包内容
     /// </summary>
-    public class BaseMessage : Post {
+    public class BaseMsg : Post {
         /// <summary>
         /// 消息类型
         /// </summary>
-        public MessageType MsgType { get; set; }
+        public MsgType MsgType { get; set; }
         /// <summary>
         /// 消息子类型
         /// </summary>
-        public MessageSubType MsgSubType { get; set; }
+        public MsgSubType MsgSubType { get; set; }
         /// <summary>
         /// 消息ID
         /// </summary>
@@ -36,7 +36,7 @@ namespace RumDice.Framework {
         /// <summary>
         /// 字体
         /// </summary>
-        public int Font { get; set; }
+        public int? Font { get; set; }
         /// <summary>
         /// 发信人昵称
         /// </summary>
@@ -44,11 +44,11 @@ namespace RumDice.Framework {
         /// <summary>
         /// 发信人性别
         /// </summary>
-        public string Sex { get; set; }
+        public string? Sex { get; set; }
         /// <summary>
         /// 发信人年龄
         /// </summary>
-        public int Age {get; set; }
+        public int? Age {get; set; }
 
 
     }

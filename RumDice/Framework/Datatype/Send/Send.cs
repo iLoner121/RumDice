@@ -12,7 +12,7 @@ namespace RumDice.Framework {
         /// <summary>
         /// 回复类型为群聊/私聊（可不填写）
         /// </summary>
-        public MessageType MsgType { get; set; } = MessageType.None;
+        public MsgType MsgType { get; set; } = MsgType.None;
         /// <summary>
         /// 回复消息内容
         /// </summary>

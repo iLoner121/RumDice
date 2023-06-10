@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     ///  消息类型
     /// </summary>
-    public enum MessageType : int{
+    public enum MsgType : int{
         /// <summary>
         /// 私聊消息=2
         /// </summary>

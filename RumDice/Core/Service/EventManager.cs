@@ -24,7 +24,7 @@ namespace RumDice.Core {
         readonly int _minPriority;
         readonly int _maxPriority;
 
-        IMessagePipeline _messagePipeline;
+        IMsgPipeline _messagePipeline;
 
 
         public EventManager(ICoreData globalData,
@@ -43,7 +43,7 @@ namespace RumDice.Core {
         public async void HandlePrivateMessage(Post post) {
             await Task.Delay(0);
             _logger.Debug("EventManager","消息已接收->私聊");
-            var baseMsg = (BaseMessage)post;
+            var baseMsg = (BaseMsg)post;
             MethodInfo method;
             bool isMatch = MatchFunc(baseMsg.Msg, 1, out method);
 
@@ -58,7 +58,7 @@ namespace RumDice.Core {
         public async void HandleGroupMessage(Post post) {
             await Task.Delay(0);
             _logger.Debug("EventManager", "消息已接收->群聊");
-            var baseMsg = (BaseMessage)post;
+            var baseMsg = (BaseMsg)post;
             MethodInfo method;
             bool isMatch = MatchFunc(baseMsg.Msg, 3 , out method);
 
@@ -236,16 +236,16 @@ namespace RumDice.Core {
         /// <param name="s"></param>
         /// <returns></returns>
         async ValueTask SendMessage(Post post,string s) {
-            var sender=(BaseMessage)post;
+            var sender=(BaseMsg)post;
             Send send = new();
             send.MsgType=sender.MsgType;
             send.Msg = s;
             switch (send.MsgType) {
-                case MessageType.Private:
-                    send.UserID = ((PrivateMessage)post).UserID;
+                case MsgType.Private:
+                    send.UserID = ((PrivateMsg)post).UserID;
                     break;
-                case MessageType.Group:
-                    send.GroupID = ((GroupMessage)post).GroupID;
+                case MsgType.Group:
+                    send.GroupID = ((GroupMsg)post).GroupID;
                     break;
                 default:
                     return;
@@ -258,7 +258,7 @@ namespace RumDice.Core {
         async ValueTask SendMessage(List<Send> sends) {
 
             if(_messagePipeline==null) {
-                _messagePipeline = (IMessagePipeline)_serviceProvider.GetService<IMessagePipeline>();
+                _messagePipeline = (IMsgPipeline)_serviceProvider.GetService<IMsgPipeline>();
             }
             foreach(var send in sends) {
                 send.Msg = UseMyService(send.Msg);

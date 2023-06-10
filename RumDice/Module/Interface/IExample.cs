@@ -23,6 +23,7 @@ namespace RumDice.Module {
         /// </summary>
         /// <param name="post"></param>
         [KeyWord(".prefixt", isPrefix: true)]
+        [IsPrivate]
         void TestKeyWord1(Post post);
 
         /// <summary>
@@ -31,6 +32,7 @@ namespace RumDice.Module {
         /// <param name="post"></param>
         /// <returns></returns>
         [KeyWord(".prefixtest",isPrefix:true)]
+        [IsPrivate]
         [Priority(1)]
         Send TestKeyWord2(Post post);
 
@@ -40,7 +42,12 @@ namespace RumDice.Module {
         /// <param name="post"></param>
         /// <returns></returns>
         [Reply("replytest")]
+        [IsPrivate]
         List<Send> TestKeyWord3(Post post);
+
+        [Reply("德洛莉丝!")]
+        [Reply("德洛莉丝！")]
+        string TestDolores(Post post);
 
 
         // 声明内置服务

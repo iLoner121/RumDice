@@ -19,7 +19,7 @@ namespace RumDice.Test {
 
         public async ValueTask RunTest() {
             for(int i = 0; i < 100; i++) {
-                var post = new GroupMessage();
+                var post = new GroupMsg();
                 
                 switch (new Random().Next(1,6)) {
                     case 1:
@@ -41,7 +41,7 @@ namespace RumDice.Test {
                         break;
 
                 }
-                post.MsgType = MessageType.Group;
+                post.MsgType = MsgType.Group;
                 _handleGroupMessage(post);
             }
             Task.Delay(100000).Wait();

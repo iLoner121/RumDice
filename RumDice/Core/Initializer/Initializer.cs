@@ -17,7 +17,7 @@ namespace RumDice.Core {
         readonly IServiceManager _serviceManager;
         readonly IClientConnector _clientConnector;
         readonly IDataCenter _dataCenter;
-        readonly IMessagePipeline _messagePipeline;
+        readonly IMsgPipeline _messagePipeline;
         readonly IRumLogger _logger;
         readonly Tester _tester;
         public Initializer(ICoreData globalData,
@@ -26,7 +26,7 @@ namespace RumDice.Core {
             IClientConnector clientConnector,
             IDataCenter dataCenter,
             Tester tester,
-            IMessagePipeline messagePipeline,
+            IMsgPipeline messagePipeline,
             IRumLogger logger) {
             _globalData = globalData;
             _serviceProvider = serviceProvider;
