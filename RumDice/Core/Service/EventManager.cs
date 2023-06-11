@@ -40,9 +40,9 @@ namespace RumDice.Core {
             _logger = logger;
         }
 
-        public async void HandleEvent(AllType type, Post post) {
+        public async ValueTask HandleEvent(AllType type, Post post) {
             if (!_globalData.ListenerTable.ContainsKey(type)) {
-                _logger.Debug("EventManager", "该事件无对应监听");
+                _logger.Debug("EventManager", $"事件{type.ToString()}无对应监听");
                 return;
             }
             _logger.Info("EventManager", $"已接到{type.ToString()}类型事件，开始分发");
@@ -99,12 +99,10 @@ namespace RumDice.Core {
                 }
 
                 var res = method.Invoke(service, new object[] { post });
-                Console.WriteLine("1");
                 if (res == null) {
                     _logger.Debug("EventManager", $"未获取该回复接口的返回值：{method.Name}");
                     return;
                 }
-                Console.WriteLine(res.ToString()+" "+res.GetType());
                 if (res is string s) {
                     await SendMessage(post, s);
                     return;
@@ -170,7 +168,7 @@ namespace RumDice.Core {
                 return false;
 
             // 保存原始字符串
-            string originalMessage = message;
+            string originalMessage = message.Trim();
 
             // 匹配标识符
             bool c1 = true, c2 = true, c3 = true, c4 = true;
@@ -252,7 +250,14 @@ namespace RumDice.Core {
         /// <param name="s"></param>
         /// <returns></returns>
         async ValueTask SendMessage(Post post,string s) {
-            var sender=(BaseMsg)post;
+            BaseMsg sender = new();
+            try {
+                sender = (BaseMsg)post;
+            }
+            catch(Exception ex) {
+                _logger.Error(ex, "该消息无法转换为Msg类型，无法生成回信包");
+                return;
+            }
             Send send = new();
             send.MsgType=sender.MsgType;
             send.Msg = s;
@@ -297,7 +302,7 @@ namespace RumDice.Core {
                     string temp = "{" + match + "}";
                     string res = "";
                     foreach (var method in _globalData.ServiceTable) {
-                        if (method.Key.StartsWith(match, StringComparison.OrdinalIgnoreCase)) {
+                        if (match.StartsWith(method.Key, StringComparison.OrdinalIgnoreCase)) {
                             string? rep = null;
 
                             try {

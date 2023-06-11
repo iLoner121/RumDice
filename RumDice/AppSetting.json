@@ -1,0 +1,28 @@
+﻿{
+  "FileConfig": {
+    "RepositoryRoot": "\\File",
+    "ReturnWordTable": "\\System\\Text\\ReturnWordTable.json",
+    "ReturnWordBackup": "\\System\\Text\\ReturnWordBackup.json"
+  },
+  "LoggerConfig": {
+    "Location": "\\File\\Log",
+    "Level": 1,
+    "OutputLevel": 2,
+    "ShowDetail": false,
+    "OutputDetail": true
+  },
+  "ServerConfig": {
+    "Location": "127.0.0.1",
+    "Port": 8080
+  },
+  "UserConfig": {
+    "IsListen": true,
+    "IsUsingPlugin": true,
+    "IsLocked": true,
+    "MaxDuration": 300,
+    "MinDuration": 100,
+    "RecvWakeDuration": 1000,
+    "SendWakeDuration": 1000,
+    "MaxThreadCount": 16
+  }
+}

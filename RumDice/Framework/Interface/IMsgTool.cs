@@ -31,6 +31,13 @@ namespace RumDice.Framework {
         /// <returns></returns>
         string GetMsgWithoutPrefix(Post post,string prefix);
         /// <summary>
+        /// 消息去前缀
+        /// </summary>
+        /// <param name="msg">消息文本</param>
+        /// <param name="prefix">指令前缀</param>
+        /// <returns></returns>
+        string GetMsgWithoutPrefix(string msg, string prefix);
+        /// <summary>
         /// 制作回信包
         /// </summary>
         /// <param name="msg"></param>

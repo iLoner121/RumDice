@@ -19,7 +19,7 @@ namespace RumDice.Core {
         public static ICoreData? Instance { get; private set; }
         public int Mode { get; } = 0;
 
-        public int Test { get; } = 0;
+        public int Test { get; } = 1;
         #region Setting
         public string RootDic { get; set; }
 
@@ -345,7 +345,6 @@ namespace RumDice.Core {
                 }
                 returnWordTable.table.Add(name, "{0}");
             }
-            Console.WriteLine("1");
             // 存储回复词表
             _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable , 3);
             _dataCenter.SaveFile(returnWordTable,Setting.FileConfig.ReturnWordBackup , 1);

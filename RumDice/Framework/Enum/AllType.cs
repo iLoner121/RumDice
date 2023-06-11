@@ -23,6 +23,10 @@ namespace RumDice.Framework {
         GroupCard = 17,
         FriendRequest = 18,
         GroupRequest = 19,
+        None=20,
 
+
+        Start=100,  // 系统启动后
+        Send =200,  // 发送消息后
     }
 }

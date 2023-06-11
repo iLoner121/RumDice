@@ -18,6 +18,11 @@ namespace RumDice.Test {
         }
 
         public async ValueTask RunTest() {
+            var t = new GroupMsg();
+            t.Msg = "decklist";
+            t.MsgType=MsgType.Group;
+            _handleGroupMessage(t);
+
             for(int i = 0; i < 100; i++) {
                 var post = new GroupMsg();
                 

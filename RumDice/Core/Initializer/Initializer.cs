@@ -20,6 +20,7 @@ namespace RumDice.Core {
         readonly IMsgPipeline _messagePipeline;
         readonly IRumLogger _logger;
         readonly Tester _tester;
+        readonly IEventManager _eventManager;
         public Initializer(ICoreData globalData,
             IServiceProvider serviceProvider,
             IServiceManager serviceManager,
@@ -27,7 +28,8 @@ namespace RumDice.Core {
             IDataCenter dataCenter,
             Tester tester,
             IMsgPipeline messagePipeline,
-            IRumLogger logger) {
+            IRumLogger logger,
+            IEventManager eventManager) {
             _globalData = globalData;
             _serviceProvider = serviceProvider;
             _serviceManager = serviceManager;
@@ -36,6 +38,7 @@ namespace RumDice.Core {
             _tester = tester;
             _messagePipeline = messagePipeline;
             _logger = logger;
+            _eventManager = eventManager;
         }
 
         public async Task StartAsync(CancellationToken token) {
@@ -68,8 +71,11 @@ namespace RumDice.Core {
             ThreadPool.SetMaxThreads(_globalData.Setting.UserConfig.MaxThreadCount+10, _globalData.Setting.UserConfig.MaxThreadCount + 10);
             _logger.Info("Initializer", "线程池已初始化");
 
-            Task.Delay(1000).Wait();
-            _logger.Info("Initializer", "初始化已完成");
+            await _eventManager.HandleEvent(AllType.Start, new Post());
+            _logger.Info("Initializer", "监听启动的服务已执行完毕");
+
+            _logger.Info("Initializer", "初始化已完成，3秒后开始启动");
+            Task.Delay(3000).Wait();
 
             if (_globalData.Test == 0) {
                 _logger.Info("Initializer", "开始启动客户端服务");

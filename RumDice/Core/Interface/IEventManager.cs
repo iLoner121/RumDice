@@ -7,7 +7,7 @@ using RumDice.Framework;
 
 namespace RumDice.Core {
     public interface IEventManager {
-        void HandleEvent(AllType type, Post post);
+        ValueTask HandleEvent(AllType type, Post post);
 
 
         /// <summary>

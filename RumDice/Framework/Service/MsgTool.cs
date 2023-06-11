@@ -41,10 +41,13 @@ namespace RumDice.Framework {
 
         public string GetMsgWithoutPrefix(Post post,string prefix) {
             BaseMsg baseMsg = (BaseMsg)post;
-            string msg=baseMsg.Msg;
-            int index=msg.IndexOf(prefix,StringComparison.OrdinalIgnoreCase);
-            int finalIndex=-1;
-            for(int i = index + prefix.Length; i < msg.Length; i++) {
+            return GetMsgWithoutPrefix(baseMsg.Msg, prefix);
+        }
+
+        public string GetMsgWithoutPrefix(string msg, string prefix) {
+            int index = msg.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
+            int finalIndex = -1;
+            for (int i = index + prefix.Length; i < msg.Length; i++) {
                 if (msg[i] == ' ') continue;
                 finalIndex = i;
                 break;

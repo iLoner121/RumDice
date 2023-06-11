@@ -66,6 +66,14 @@ namespace RumDice.Framework {
             return true;
         }
 
+        void HandleUnknownFile(string jsonString,Type type,Action<object> action) {
+            var tempObj = Activator.CreateInstance(type);
+            tempObj= JsonConvert.DeserializeObject(jsonString, type);
+            if (tempObj == null)
+                return;
+            action(tempObj);
+        }
+
         /// <summary>
         /// 从硬盘读取文件
         /// </summary>
@@ -73,7 +81,7 @@ namespace RumDice.Framework {
         /// <param name="readType">返回：读取类型</param>
         /// <param name="objType">返回：文件类型string</param>
         /// <returns>序列化后的文件对象</returns>
-        object ReadFile(string path, out int readType, out Type objType) {
+        object ReadFile(string path, out int readType, out Type objType,Type? t = null,Action<object>? action=null) {
             readType = -1;
             objType = null;
             if (!File.Exists(path)) {
@@ -94,6 +102,9 @@ namespace RumDice.Framework {
             try {
                 // 如果json中没有标明类型则返回null
                 if (!jObj.ContainsKey("fileType")) {
+                    if(t != null&&action!=null) {
+                        HandleUnknownFile(JsonString, t, action);
+                    }
                     return null;
                 }
                 string typeName = jObj["fileType"].ToString();
@@ -108,6 +119,13 @@ namespace RumDice.Framework {
                 // 反序列化获取对象
                 Type type;
                 var tempObj = _serviceManager.GetStruct(typeName, out type);
+                if(tempObj == null) { 
+                    if(t != null && action!=null) {  
+                        HandleUnknownFile(JsonString, t, action);
+                    }
+                    _logger.Warn("DataCenter", "无法以已声明类型反序列化该文件");
+                    return null;
+                }
                 tempObj = JsonConvert.DeserializeObject(JsonString,type);
 
                 objType = type;
@@ -119,11 +137,11 @@ namespace RumDice.Framework {
             }
         }
 
-        bool TryAddNewFile(string fullName) {
+        bool TryAddNewFile(string fullName,Type? t=null,Action<object>? action =null) {
             // 读取文件对象
             int readType = -1;
             Type type = null;
-            var tempObj = ReadFile(fullName, out readType, out type);
+            var tempObj = ReadFile(fullName, out readType, out type , t, action);
             // 读取失败
             if (tempObj == null)
                 return false;
@@ -135,6 +153,10 @@ namespace RumDice.Framework {
             } else {
                 name = s;
             }
+
+
+            if (FileTable.ContainsKey(name))
+                return false;
 
             // 添加到FileTable
             var fileInfo = new MyFileInfo();
@@ -149,6 +171,8 @@ namespace RumDice.Framework {
             if (readType == 1)
                 return true;
 
+            if (ObjTable.ContainsKey(name)) 
+                return false;
 
             // 添加到ObjTable
             var objInfo = new MyObjInfo();
@@ -333,6 +357,18 @@ namespace RumDice.Framework {
             var files = dir.GetFiles("*.json", System.IO.SearchOption.AllDirectories);
             foreach ( var file in files ) {
                 TryAddNewFile(file.FullName);
+            }
+            _logger.Debug("DataCenter", "本地文件扫描完成");
+        }
+
+        public async ValueTask ScanFile(string path, Type type, Action<object>? action) {
+            if(!Directory.Exists(_root+path)) { 
+                Directory.CreateDirectory(_root+path);
+            }
+            DirectoryInfo dir = new DirectoryInfo(_root+path);
+            var files = dir.GetFiles("*.json",System.IO.SearchOption.AllDirectories);
+            foreach (var file in files) {
+                TryAddNewFile(file.FullName,type,action);
             }
             _logger.Debug("DataCenter", "本地文件扫描完成");
         }

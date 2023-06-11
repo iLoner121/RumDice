@@ -80,5 +80,14 @@ namespace RumDice.Framework {
 
         void Initialize(AppSetting appSetting,string RootDic);
 
+        /// <summary>
+        /// 将目录下的文件尝试以某类型读取(如果某文件已经被读取过，则不跳过该文件)
+        /// </summary>
+        /// <param name="path">文件路径</param>
+        /// <param name="type">文件类型</param>
+        /// <param name="action">读取到某个文件后将执行的操作（为空则执行SaveFile）</param>
+        /// <returns></returns>
+        ValueTask ScanFile(string path,Type type,Action<object>? action);
+
     }
 }
