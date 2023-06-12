@@ -77,10 +77,21 @@ namespace RumDice.Framework {
                     }
                     if (_interfaceTable.ContainsKey(interf)) {
                         _logger.Warn("ServiceManager", "+++类别添加失败：重复的接口或类别");
-                        return;
+                        break;
                     }
                     SetTransient(interf,assembly);
                     _logger.Debug("ServiceManager", $"+++已将{interf.Name},{assembly.Name}加入对象管理器");
+                }
+                if (interfaces.Length == 0) {
+                    if(assembly.GetCustomAttribute(typeof(MyClassAttribute)) is not MyClassAttribute attribute) {
+                        continue;
+                    }
+                    if(_typeCheckTable.ContainsKey(assembly.Name)) {
+                        _logger.Warn("ServiceManager", "+++类别添加失败：重复的接口或类别");
+                        break;
+                    }
+                    SetTransient(assembly);
+                    _logger.Debug("ServiceManager", $"+++已将{assembly.Name}加入对象管理器");
                 }
             }
 
@@ -119,6 +130,22 @@ namespace RumDice.Framework {
             _interfaceTable.Add(interfaceType, serviceType);
             return true;
         }
+
+        bool SetService(Type serviceType,ServiceType t) {
+            if(_typeCheckTable.ContainsKey(serviceType.Name)) {
+                _logger.Warn("ServiceManager", "+++服务设置失败：已经设置过该服务");
+                return false;
+            }
+            if(_interfaceTable.ContainsKey(serviceType)) {
+                _logger.Warn("ServiceManager", "+++服务设置失败：已经设置过相同接口的服务");
+                return false;
+            }
+            _typeCheckTable.Add(serviceType.Name, t);
+            _interfaceTable.Add(serviceType, serviceType);
+            return true;
+        }
+
+
         /// <summary>
         /// 获取单例
         /// </summary>
@@ -158,9 +185,17 @@ namespace RumDice.Framework {
             SetService(it,st, ServiceType.SINGLETON);
             return;
         }
+        public async ValueTask SetSingleton(Type st) {
+            SetService(st, ServiceType.SINGLETON);
+            return;
+        }
 
         public async ValueTask SetTransient(Type it,Type st) {
             SetService(it,st, ServiceType.TRANSIENT);
+            return;
+        }
+        public async ValueTask SetTransient(Type st) {
+            SetService(st, ServiceType.TRANSIENT);
             return;
         }
 
@@ -170,8 +205,20 @@ namespace RumDice.Framework {
             return;
         }
 
+        public async ValueTask SetTimed(Type st,long time = 100) {
+            SetService(st, ServiceType.TIMED);
+            _lifetimeCheckTable.Add(st.Name, time);
+            return;
+        }
+
         public async ValueTask SetCounted(Type it,Type st, int max = 10) {
             SetService(it,st, ServiceType.COUNTED);
+            _maxCheckTable.Add(st.Name, max);
+            return;
+        }
+
+        public async ValueTask SetCounted(Type st,int max = 10) {
+            SetService(st, ServiceType.COUNTED);
             _maxCheckTable.Add(st.Name, max);
             return;
         }

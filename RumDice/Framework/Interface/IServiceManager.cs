@@ -10,31 +10,62 @@ namespace RumDice.Framework {
         ValueTask Initialize();
 
         /// <summary>
-        /// 将该类设置为单例
+        /// 设置单例
         /// </summary>
-        /// <param name="methodInfo">目标类的MethodInfo</param>
+        /// <param name="it">接口type</param>
+        /// <param name="st">类type</param>
         /// <returns></returns>
         ValueTask SetSingleton(Type it,Type st);
         /// <summary>
-        /// 将该类设置为常新（每次获取总是新的示例）
+        /// 设置单例
         /// </summary>
-        /// <param name="methodInfo">目标类的MethodInfo</param>
+        /// <param name="st">类type</param>
+        /// <returns></returns>
+        ValueTask SetSingleton(Type st);
+        /// <summary>
+        /// 设置瞬态
+        /// </summary>
+        /// <param name="it">接口type</param>
+        /// <param name="st">类type</param>
         /// <returns></returns>
         ValueTask SetTransient(Type it, Type st);
         /// <summary>
-        /// 将该类设为定时存在（在一定时间内会获取相同的示例）
+        /// 设置瞬态
         /// </summary>
-        /// <param name="methodInfo">目标类的MethodInfo</param>
-        /// <param name="time">实例的生命周期（timestamp）</param>
+        /// <param name="st">类type</param>
+        /// <returns></returns>
+        ValueTask SetTransient(Type st);
+        /// <summary>
+        /// 设置计时
+        /// </summary>
+        /// <param name="it">接口type</param>
+        /// <param name="st">类type</param>
+        /// <param name="time">次数</param>
         /// <returns></returns>
         ValueTask SetTimed(Type it, Type st, long time=100);
         /// <summary>
-        /// 将该类设定为定数示例（在示例总数未超过上限时，总是获取新示例）
+        /// 设置计时
         /// </summary>
-        /// <param name="methodInfo">目标类的MethodInfo</param>
-        /// <param name="max">实例的数量上限</param>
+        /// <param name="st">类type</param>
+        /// <param name="time">次数</param>
+        /// <returns></returns>
+        ValueTask SetTimed (Type st, long time=100);
+        /// <summary>
+        /// 设置记数
+        /// </summary>
+        /// <param name="it">接口type</param>
+        /// <param name="st">类type</param>
+        /// <param name="max">最大数量</param>
         /// <returns></returns>
         ValueTask SetCounted(Type it, Type st, int max=10);
+        /// <summary>
+        /// 设置计数
+        /// </summary>
+        /// <param name="st">类type</param>
+        /// <param name="max">最大数量</param>
+        /// <returns></returns>
+        ValueTask SetCounted(Type st, int max=10);
+
         /// <summary>
         /// 获取实例
         /// </summary>
@@ -44,13 +75,13 @@ namespace RumDice.Framework {
         /// <summary>
         /// 获取多个实例
         /// </summary>
-        /// <param name="methodInfo">该类的MethodInfo</param>
+        /// <param name="type">该类的MethodInfo</param>
         /// <returns></returns>
        List<object> GetServiceList(Type type);
         /// <summary>
         /// 获取多个不同类型的实例
         /// </summary>
-        /// <param name="methodInfo">每个需获取类的MethodInfo</param>
+        /// <param name="types">每个需获取类的MethodInfo</param>
         /// <returns></returns>
         List<object> GetServiceList(List<Type> types);
 

@@ -281,10 +281,13 @@ namespace RumDice.Core {
             if(_messagePipeline==null) {
                 _messagePipeline = (IMsgPipeline)_serviceProvider.GetService<IMsgPipeline>();
             }
+            List<Send> sendquene = new();
             foreach(var send in sends) {
                 send.Msg = UseMyService(send.Msg);
+                var temps = SplitSend(send);
+                sendquene.AddRange(temps);
             }
-            _messagePipeline.SendMsg(sends);
+            _messagePipeline.SendMsg(sendquene);
         }   
 
         /// <summary>
@@ -294,40 +297,101 @@ namespace RumDice.Core {
         /// <returns></returns>
         string UseMyService(string s) {
             _logger.Debug("EventManager", "最终回复语句开始处理");
+            // 匹配
             string pattern = @"\{(?<name>.+?)\}";
-            HashSet<string>? matches = new HashSet<string>();
-            int count = 0;
-            while (!(matches=Regex.Matches(s, pattern).Cast<Match>().Select(m => m.Groups["name"].Value).ToHashSet()).IsEmpty()) {
+            List<string>? matches = new();
+            // 直到字符串内不含有任何花括号指令为止
+            while (!(matches=Regex.Matches(s, pattern).Cast<Match>().Select(m => m.Groups["name"].Value).ToList()).IsEmpty()) {
+                // 不放回抽牌的防重复表
+                Dictionary<string, HashSet<string>> dic = new();
+                // 遍历每一个匹配项
                 foreach (var match in matches) {
+                    // 匹配成功后将被替换掉的短语
                     string temp = "{" + match + "}";
+                    if (match.Equals("split", StringComparison.OrdinalIgnoreCase)) {
+                        Regex re = new Regex(temp);
+                        s = re.Replace(s, "(split)", 1);
+                        continue;
+                    }
+                    // 当前匹配指令
+                    string tmatch = match;
+                    // 替换的结果
                     string res = "";
-                    foreach (var method in _globalData.ServiceTable) {
-                        if (match.StartsWith(method.Key, StringComparison.OrdinalIgnoreCase)) {
-                            string? rep = null;
+                    // 是否可重复（放回）
+                    bool isRepeat = false;
+                    // 只有draw指令才判断是否放回
+                    if(match.StartsWith("%")) {
+                        isRepeat = true;
+                        tmatch=match.Substring(1);
+                    }else if (!match.StartsWith("draw:")) {
+                        isRepeat = true;
+                    }
+                    // 尝试抽牌次数
+                    int tryTimes = 0;
+                    do {
+                        // 产生匹配词
+                        foreach (var method in _globalData.ServiceTable) {
+                            if (tmatch.StartsWith(method.Key, StringComparison.OrdinalIgnoreCase)) {
+                                string? rep = null;
+                                try {
+                                    var service = _serviceManager.GetService(method.Value.MethodInfo.DeclaringType);
+                                    rep = method.Value.MethodInfo.Invoke(service, new object[] { tmatch }).ToString();
+                                }
+                                catch (Exception ex) {
+                                    _logger.Error(ex, "内置服务调用失败");
+                                }
 
-                            try {
-                                var service = _serviceManager.GetService(method.Value.MethodInfo.DeclaringType);
-                                rep = method.Value.MethodInfo.Invoke(service, new object[] { match }).ToString();
-                            }
-                            catch (Exception ex) {
-                                _logger.Error(ex, "内置服务调用失败");
-                            }
-
-                            if (rep == null) {
-                                continue;
-                            }
-                            if (rep is string) {
-                                res = rep;
-                                break;
+                                if (rep == null) {
+                                    continue;
+                                }
+                                if (rep is string) {
+                                    res = rep;
+                                    break;
+                                }
                             }
                         }
-                    }
+                        // 判断是否匹配结束
+                        if (!isRepeat&&!res.Equals("")) {
+                            if (dic.ContainsKey(temp)) {
+                                if (!dic[temp].Contains(res)) {
+                                    dic[temp].Add(res);
+                                    break;
+                                }
+                            } else {
+                                dic.Add(temp,new HashSet<string> { res });
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                        // 最多尝试十次
+                        if (++tryTimes >= 10)
+                            break;
+                    } while (true);
+                    
                     _logger.Debug("EventManager", $"在回复语句中识别到 {temp} 指令，将替换为 \"{res}\"");
-                    s = s.Replace(temp, res);
+                    // 只替换最靠前的一个匹配项
+                    Regex r = new Regex(temp);
+                    s = r.Replace(s, res,1);
                 }
             }
             _logger.Debug("EventManager", "最终回复语句已经生成");
             return s;
+        }
+
+        List<Send> SplitSend(Send send) {
+            string msg = send.Msg;
+            var splitMsg = msg.Split("(split)");
+            List<Send> res = new();
+            foreach(string s in splitMsg) {
+                Send tempSend = new();
+                tempSend.Msg = s;
+                tempSend.UserID = send.UserID;
+                tempSend.GroupID= send.GroupID;
+                tempSend.MsgType= send.MsgType;
+                res.Add(tempSend);
+            }
+            return res;
         }
     }
 }

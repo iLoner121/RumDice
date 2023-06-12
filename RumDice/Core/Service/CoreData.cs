@@ -19,7 +19,7 @@ namespace RumDice.Core {
         public static ICoreData? Instance { get; private set; }
         public int Mode { get; } = 0;
 
-        public int Test { get; } = 1;
+        public int Test { get; } = 0;
         #region Setting
         public string RootDic { get; set; }
 

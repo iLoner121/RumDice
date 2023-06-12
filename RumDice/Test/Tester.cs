@@ -19,7 +19,7 @@ namespace RumDice.Test {
 
         public async ValueTask RunTest() {
             var t = new GroupMsg();
-            t.Msg = "decklist";
+            t.Msg = ".draw _抽牌压力测试";
             t.MsgType=MsgType.Group;
             _handleGroupMessage(t);
 
