@@ -30,5 +30,10 @@ namespace RumDice.Framework {
         /// </summary>
         public bool IsCQ { get; set; }=false;
 
+        /// <summary>
+        /// 机器人类型
+        /// </summary>
+        public BotType BotType { get; set; }
+
     }
 }

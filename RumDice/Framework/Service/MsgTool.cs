@@ -66,6 +66,7 @@ namespace RumDice.Framework {
             var send = new Send();
             send.Msg = msg;
             send.MsgType=GetMsgType(post);
+            send.BotType = post.BotType;
             switch (send.MsgType) {
                 case MsgType.Private:
                     var pm=(PrivateMsg)post;

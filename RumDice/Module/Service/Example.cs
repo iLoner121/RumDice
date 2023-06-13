@@ -82,6 +82,7 @@ namespace RumDice.Module {
 
         public Send RecallTest(Post post) {
             var send = new Send();
+            send.BotType = post.BotType;
             send.Msg = "有人撤回了信息，但是我不告诉你内容是什么";
             if(post is FriendRecallNotice a) {
                 send.UserID = a.UserID;

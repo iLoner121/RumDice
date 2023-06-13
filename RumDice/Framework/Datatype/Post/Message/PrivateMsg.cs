@@ -22,7 +22,7 @@ namespace RumDice.Framework {
         /// <summary>
         /// 当私聊是群临时对话的话，此项不为null
         /// </summary>
-        public long? GroupID { get; set; }
+        public string? GroupID { get; set; }
 
 
     }

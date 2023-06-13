@@ -261,6 +261,7 @@ namespace RumDice.Core {
             Send send = new();
             send.MsgType=sender.MsgType;
             send.Msg = s;
+            send.BotType=sender.BotType;
             switch (send.MsgType) {
                 case MsgType.Private:
                     send.UserID = ((PrivateMsg)post).UserID;
@@ -286,6 +287,9 @@ namespace RumDice.Core {
                 send.Msg = UseMyService(send.Msg);
                 var temps = SplitSend(send);
                 sendquene.AddRange(temps);
+            }
+            foreach(var send in sendquene) {
+                Console.WriteLine(send.Msg);
             }
             _messagePipeline.SendMsg(sendquene);
         }   
@@ -386,11 +390,13 @@ namespace RumDice.Core {
             foreach(string s in splitMsg) {
                 Send tempSend = new();
                 tempSend.Msg = s;
+                tempSend.BotType = send.BotType;
                 tempSend.UserID = send.UserID;
                 tempSend.GroupID= send.GroupID;
                 tempSend.MsgType= send.MsgType;
                 res.Add(tempSend);
             }
+            _logger.Debug("EventManager", "回复语句已分段完毕");
             return res;
         }
     }

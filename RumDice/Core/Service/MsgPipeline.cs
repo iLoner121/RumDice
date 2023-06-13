@@ -27,7 +27,8 @@ namespace RumDice.Core {
 
         readonly ICoreData coreData;
         readonly IEventManager _eventManager;
-        readonly IClientConnector _clientConnector;
+        readonly QQClientConnector _qqConnector;
+        readonly KookClientConnector _kookConnector;
         readonly IRumLogger _logger;
 
         int _mode;
@@ -35,11 +36,12 @@ namespace RumDice.Core {
         Random random = new Random();
 
 
-        public MsgPipeline(ICoreData coreData, IEventManager eventManager, IClientConnector clientConnector, IRumLogger logger) {
+        public MsgPipeline(ICoreData coreData, IEventManager eventManager, QQClientConnector qqConnector, IRumLogger logger, KookClientConnector kookConnector) {
             this.coreData = coreData;
             _eventManager = eventManager;
-            _clientConnector = clientConnector;
+            _qqConnector = qqConnector;
             _logger = logger;
+            _kookConnector = kookConnector;
         }
 
 
@@ -101,21 +103,30 @@ namespace RumDice.Core {
                 if (_mode == 1) {
                     _logger.Info("MessagePipeline", "发信：" + JsonConvert.SerializeObject(item));
                 }
-                if (item.MsgType == MsgType.Group) {
-                    _clientConnector.SendGroupMsg(item);
-                    continue;
+                Console.WriteLine(item.BotType + " " + item.MsgType);
+                if(item.BotType==BotType.QQbot) {
+                    if (item.MsgType == MsgType.Group) {
+                        _qqConnector.SendGroupMsg(item);
+                        continue;
+                    }
+                    if (item.MsgType == MsgType.Private) {
+                        _qqConnector.SendPrivateMsg(item);
+                        continue;
+                    }
+                    if (item.UserID != 0) {
+                        _qqConnector.SendPrivateMsg(item);
+                        continue;
+                    }
+                    if (item.GroupID != 0) {
+                        _qqConnector.SendGroupMsg(item);
+                        continue;
+                    }
                 }
-                if(item.MsgType==MsgType.Private) {
-                    _clientConnector.SendPrivateMsg(item);
-                    continue;
-                }
-                if(item.UserID!=0) {
-                    _clientConnector.SendPrivateMsg(item);
-                    continue;
-                }
-                if(item.GroupID!=0) {
-                    _clientConnector.SendGroupMsg(item);
-                    continue;
+                if(item.BotType== BotType.KOOKbot) {
+                    if (item.GroupID != 0) {
+                        _kookConnector.SendGroupMsg(item);
+                        continue;
+                    }
                 }
             }
             _isSending = false;

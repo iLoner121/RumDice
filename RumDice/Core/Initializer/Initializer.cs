@@ -15,7 +15,8 @@ namespace RumDice.Core {
         readonly ICoreData _globalData;
         readonly IServiceProvider _serviceProvider;
         readonly IServiceManager _serviceManager;
-        readonly IClientConnector _clientConnector;
+        readonly QQClientConnector _qqConnector;
+        readonly KookClientConnector _kookConnector;
         readonly IDataCenter _dataCenter;
         readonly IMsgPipeline _messagePipeline;
         readonly IRumLogger _logger;
@@ -24,7 +25,8 @@ namespace RumDice.Core {
         public Initializer(ICoreData globalData,
             IServiceProvider serviceProvider,
             IServiceManager serviceManager,
-            IClientConnector clientConnector,
+            QQClientConnector qqConnector,
+            KookClientConnector kookConnector,
             IDataCenter dataCenter,
             Tester tester,
             IMsgPipeline messagePipeline,
@@ -33,7 +35,8 @@ namespace RumDice.Core {
             _globalData = globalData;
             _serviceProvider = serviceProvider;
             _serviceManager = serviceManager;
-            _clientConnector = clientConnector;
+            _qqConnector = qqConnector;
+            _kookConnector = kookConnector;
             _dataCenter = dataCenter;
             _tester = tester;
             _messagePipeline = messagePipeline;
@@ -78,14 +81,20 @@ namespace RumDice.Core {
             Task.Delay(3000).Wait();
 
             if (_globalData.Test == 0) {
-                _logger.Info("Initializer", "开始启动客户端服务");
-                string uri = $"ws://{_globalData.Setting.ServerConfig.Location}:{_globalData.Setting.ServerConfig.Port}";
-                await _clientConnector.RunServer(uri);
+                if (_globalData.Setting.ServerConfig.QQbot) {
+                    _logger.Info("Initializer", "开始启动QQ客户端服务");
+                    string uri = $"ws://{_globalData.Setting.ServerConfig.Location}:{_globalData.Setting.ServerConfig.Port}";
+                    _qqConnector.RunServer(uri);
+                }
+                if (_globalData.Setting.ServerConfig.KOOKbot) {
+                    _logger.Info("Initializer", "开始启动Kook客户端服务");
+                    _kookConnector.RunServer(_globalData.Setting.ServerConfig.KookToken);
+                }
             } else {
                 _logger.Info("Initializer", "开始启动测试程序");
                 _tester.SetHandlePrivateMessage(_messagePipeline.RecvPrivateMsg);
                 _tester.SetHandleGroupMessage(_messagePipeline.RecvGroupMsg);
-                await _tester.RunTest();
+                _tester.RunTest();
             }
         }
 

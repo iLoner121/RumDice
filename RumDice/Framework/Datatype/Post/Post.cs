@@ -22,5 +22,10 @@ namespace RumDice.Framework {
         /// </summary>
         public PostType PostType { get; set; }
 
+        /// <summary>
+        /// 机器人类型
+        /// </summary>
+        public BotType BotType { get; set; }
+
     }
 }

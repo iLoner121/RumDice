@@ -9,32 +9,32 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
-    public class ClientConnector : IClientConnector {
-        public CqWsSession Session { get; set; } 
+    public class QQClientConnector : IClientConnector {
+        CqWsSession _session { get; set; } 
         readonly IServiceProvider _serviceProvider;
         readonly IRumLogger _logger;
 
-        public ClientConnector(IServiceProvider serviceProvider,IRumLogger rumLogger) { 
+        public QQClientConnector(IServiceProvider serviceProvider,IRumLogger rumLogger) { 
             _serviceProvider = serviceProvider;
             _logger = rumLogger;
         }
 
         public async ValueTask SendPrivateMsg(Send send) {
-            Session.SendPrivateMessage(send.UserID, new EleCho.GoCqHttpSdk.Message.CqMessage(send.Msg));
+            _session.SendPrivateMessage(send.UserID, new EleCho.GoCqHttpSdk.Message.CqMessage(send.Msg));
             return;
         }
         public async ValueTask SendGroupMsg(Send send) {
-            Session.SendGroupMessage(send.GroupID, new EleCho.GoCqHttpSdk.Message.CqMessage(send.Msg));
+            _session.SendGroupMessage(send.GroupID, new EleCho.GoCqHttpSdk.Message.CqMessage(send.Msg));
             return;
         }
 
         public async ValueTask RunServer(string uri) {
-            Session = new CqWsSession(new CqWsSessionOptions() {
+            _session = new CqWsSession(new CqWsSessionOptions() {
                 BaseUri = new Uri(uri),
             });
 
             var mp = _serviceProvider.GetRequiredService<IMsgPipeline>();
-            Session.UseGroupMessage((context, next) =>
+            _session.UseGroupMessage((context, next) =>
             {
                 GroupMsg message = new();
                 #region 赋值
@@ -43,6 +43,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    message.BotType = BotType.QQbot;
                     message.Time = time;
                     message.SelfId = context.SelfId;
                     message.PostType = PostType.Message;
@@ -76,7 +77,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UsePrivateMessage((context,next) =>
+            _session.UsePrivateMessage((context,next) =>
             {
                 PrivateMsg message = new PrivateMsg();
 
@@ -85,6 +86,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4)); 
                 try {
+                    message.BotType = BotType.QQbot;
                     message.Time = time;
                     message.SelfId = context.SelfId;
                     message.PostType = PostType.Message;
@@ -109,7 +111,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseFriendMessageRecalled((context, next) =>
+            _session.UseFriendMessageRecalled((context, next) =>
             {
                 FriendRecallNotice notice = new FriendRecallNotice();
 
@@ -118,6 +120,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -133,7 +136,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupMessageRecalled((context, next) =>
+            _session.UseGroupMessageRecalled((context, next) =>
             {
                 GroupRecallNotice notice = new GroupRecallNotice();
 
@@ -142,6 +145,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -159,7 +163,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupMemberIncreased((context, next) =>
+            _session.UseGroupMemberIncreased((context, next) =>
             {
                 GroupIncreaseNotice notice = new GroupIncreaseNotice();
 
@@ -168,6 +172,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -185,7 +190,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupMemberDecreased((context, next) =>
+            _session.UseGroupMemberDecreased((context, next) =>
             {
                 GroupDecreaseNotice notice = new GroupDecreaseNotice();
 
@@ -194,6 +199,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -211,7 +217,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupAdministratorChanged((context, next) =>
+            _session.UseGroupAdministratorChanged((context, next) =>
             {
                 GroupAdminNotice notice = new GroupAdminNotice();
 
@@ -220,6 +226,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -236,7 +243,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupMemberBanChanged((context, next) =>
+            _session.UseGroupMemberBanChanged((context, next) =>
             {
                 GroupBanNotice notice = new GroupBanNotice();
 
@@ -245,6 +252,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -263,7 +271,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseFriendAdded((context, next) =>
+            _session.UseFriendAdded((context, next) =>
             {
                 FriendAddNotice notice = new FriendAddNotice();
 
@@ -272,6 +280,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -286,7 +295,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UsePoked((context, next) =>
+            _session.UsePoked((context, next) =>
             {
                 PokeNotice notice = new PokeNotice();
 
@@ -295,6 +304,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -311,7 +321,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupMemberHonorChanged((context, next) =>
+            _session.UseGroupMemberHonorChanged((context, next) =>
             {
                 HonorNotice notice = new HonorNotice();
 
@@ -320,6 +330,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -336,7 +347,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupMemberTitleChangeNoticed((context, next) =>
+            _session.UseGroupMemberTitleChangeNoticed((context, next) =>
             {
                 GroupTitleNotice notice = new GroupTitleNotice();
 
@@ -345,6 +356,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    notice.BotType = BotType.QQbot;
                     notice.Time = time;
                     notice.SelfId = context.SelfId;
                     notice.PostType = PostType.Notice;
@@ -361,7 +373,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseFriendRequest((context, next) =>
+            _session.UseFriendRequest((context, next) =>
             {
                 FriendRequest request = new FriendRequest();
 
@@ -370,6 +382,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    request.BotType = BotType.QQbot;
                     request.Time = time;
                     request.SelfId = context.SelfId;
                     request.PostType = PostType.Request;
@@ -386,7 +399,7 @@ namespace RumDice.Core {
                 next();
             });
 
-            Session.UseGroupRequest((context, next) =>
+            _session.UseGroupRequest((context, next) =>
             {
                 GroupRequest request = new GroupRequest();
 
@@ -395,6 +408,7 @@ namespace RumDice.Core {
                 long timeStamp = toNow.Ticks;
                 long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
                 try {
+                    request.BotType = BotType.QQbot;
                     request.Time = time;
                     request.SelfId = context.SelfId;
                     request.PostType = PostType.Request;
@@ -420,7 +434,7 @@ namespace RumDice.Core {
             
 
 
-            await Session.RunAsync();
+            await _session.RunAsync();
             return;
         }
     }

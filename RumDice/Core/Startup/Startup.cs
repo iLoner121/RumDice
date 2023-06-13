@@ -24,7 +24,8 @@ namespace RumDice.Core.Startup {
                         services.AddSingleton<ICoreData,CoreData>();
                         services.AddSingleton<IEventManager, EventManager>();
                         services.AddSingleton<IServiceManager, ServiceManager>();
-                        services.AddSingleton<IClientConnector, ClientConnector>();
+                        services.AddSingleton<QQClientConnector>();
+                        services.AddSingleton<KookClientConnector>();
                         services.AddSingleton<IDataCenter, DataCenter>();
                         services.AddSingleton<IMsgPipeline, MsgPipeline>();
                         services.AddSingleton<IRumLogger, RumLogger>();
