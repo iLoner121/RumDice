@@ -36,9 +36,7 @@ namespace RumDice.Core.Startup {
                     .Build();
                 host.RunAsync();
                 //await host.StartAsync();
-                while (true) {
-                    //cccc;
-                }
+                await Task.Delay(Timeout.Infinite);
                 ConsoleColor c = Console.BackgroundColor;
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.BackgroundColor = c;

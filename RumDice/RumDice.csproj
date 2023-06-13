@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="CS-Script" Version="4.6.5" />
     <PackageReference Include="EleCho.GoCqHttpSdk" Version="1.0.13" />
+    <PackageReference Include="Kook.Net" Version="0.5.0" />
     <PackageReference Include="LiteDB" Version="5.0.16" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0-preview.3.23174.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

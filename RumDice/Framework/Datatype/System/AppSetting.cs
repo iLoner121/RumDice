@@ -15,13 +15,25 @@ namespace RumDice.Framework {
 
     public class ServerConfig {
         /// <summary>
-        /// 监听地址
+        /// 是否启动qq机器人
+        /// </summary>
+        public bool QQbot { get; set; } = true;
+        /// <summary>
+        /// 是否启动KOOK机器人
+        /// </summary>
+        public bool KOOKbot { get; set; } = true;
+        /// <summary>
+        /// gocqhttp监听地址
         /// </summary>
         public string Location { get; set; } = "127.0.0.1";
         /// <summary>
-        /// 监听接口
+        /// gocqhttp监听接口
         /// </summary>
         public ushort Port { get; set; } = 8080;
+        /// <summary>
+        /// kook机器人token
+        /// </summary>
+        public string KookToken { get; set; } = "";
     }
 
     public class UserConfig {
