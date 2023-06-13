@@ -11,7 +11,7 @@ namespace RumDice.Framework {
         /// <summary>
         /// 服务类型
         /// </summary>
-        enum ServiceType {
+        public enum ServiceType {
             SINGLETON,
             TRANSIENT,
             TIMED,
@@ -79,7 +79,20 @@ namespace RumDice.Framework {
                         _logger.Warn("ServiceManager", "+++类别添加失败：重复的接口或类别");
                         break;
                     }
-                    SetTransient(interf,assembly);
+                    switch (attribute.ServiceType) {
+                        case ServiceType.SINGLETON:
+                            SetSingleton(interf,assembly);
+                            break;
+                        case ServiceType.TRANSIENT:
+                            SetTransient(interf, assembly);
+                            break;
+                        case ServiceType.TIMED:
+                            break;
+                        case ServiceType.COUNTED:
+                            break;
+                        default:
+                            break;
+                    }
                     _logger.Debug("ServiceManager", $"+++已将{interf.Name},{assembly.Name}加入对象管理器");
                 }
                 if (interfaces.Length == 0) {
@@ -90,7 +103,20 @@ namespace RumDice.Framework {
                         _logger.Warn("ServiceManager", "+++类别添加失败：重复的接口或类别");
                         break;
                     }
-                    SetTransient(assembly);
+                    switch (attribute.ServiceType) {
+                        case ServiceType.SINGLETON:
+                            SetSingleton(assembly);
+                            break;
+                        case ServiceType.TRANSIENT:
+                            SetTransient(assembly);
+                            break;
+                        case ServiceType.TIMED:
+                            break;
+                        case ServiceType.COUNTED:
+                            break;
+                        default:
+                            break;
+                    }
                     _logger.Debug("ServiceManager", $"+++已将{assembly.Name}加入对象管理器");
                 }
             }

@@ -34,7 +34,11 @@ namespace RumDice.Core.Startup {
                         services.AddHostedService<Initializer>();
                     })
                     .Build();
-                await host.StartAsync();
+                host.RunAsync();
+                //await host.StartAsync();
+                while (true) {
+                    //cccc;
+                }
                 ConsoleColor c = Console.BackgroundColor;
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.BackgroundColor = c;

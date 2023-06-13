@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static RumDice.Framework.ServiceManager;
 
 namespace RumDice.Framework {
     /// <summary>
@@ -11,6 +12,9 @@ namespace RumDice.Framework {
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class MyClassAttribute : Attribute {
-        public MyClassAttribute() { }
+        public ServiceType ServiceType { get; set; }
+        public MyClassAttribute(ServiceType serviceType=ServiceType.TRANSIENT) {
+            this.ServiceType = serviceType;
+        }
     }
 }
