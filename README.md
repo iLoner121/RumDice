@@ -89,3 +89,9 @@ RumDice的开发目的就是为了让想要定制自己的功能的开发者可�
 目前，该库尚未开发完成，我提前发出以记录我的开发过程并邀请广大对C#有热情的跑团人的参加。
 在完成该项目的开发之后，我会制作两个基于此框架的机器人“德洛莉丝”和“菲洛米娜”作为示例项目，以便想要搭建自己的骰子的骰主参考或直接使用。
 再往后，我会自己实现和gocqhttp的连接-自己完成对mirai的封装-自己实现协议。届时，将有一个完全C#原生的机器人框架。
+## 使用开源库
+- [EleCho.GoCqhttpSdk](https://github.com/OrgEleCho/EleCho.GoCqHttpSdk)
+- [Kook.Net](https://github.com/gehongyan/Kook.Net)
+- [CS-Script](https://github.com/oleg-shilo/cs-script)
+- [Newtonsoft.Json](https://www.newtonsoft.com/json)
+- [gocqhttp](https://github.com/Mrs4s/go-cqhttp)
