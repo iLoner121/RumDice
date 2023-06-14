@@ -21,7 +21,6 @@ namespace RumDice.Module {
             IMsgTool messageTool = new MsgTool();
             string echo = messageTool.GetMsgWithoutPrefix(post, "echo");
 
-
             /* 
              *使用MessageTool的GenerateMessage方法生成消息
              *这种方式可以让你能够便捷的在json文件中自定义回复语句的内容

@@ -86,8 +86,7 @@ namespace RumDice.Core {
                     msg.PostType = PostType.Message;
                     msg.MsgType = MsgType.Group;
                     msg.MsgSubType = MsgSubType.Group;
-                    //msg.MsgID
-                    msg.Username = $"{author.Username}#{author.IdentifyNumberValue}";
+                    msg.UserID = (long)message.Author.Id;
                     msg.Msg = message.CleanContent;
                     msg.RawMsg = message.RawContent;
                     //msg.Font
@@ -96,13 +95,6 @@ namespace RumDice.Core {
                     //msg.Age
                     msg.GroupID = (long)channel.Id;
                     msg.Card = author.Nickname!=null?author.Nickname:author.Username;
-                    Console.WriteLine(msg.GroupID);
-                    Console.WriteLine(msg.Username);
-                    Console.WriteLine(msg.UserID);
-                    Console.WriteLine(msg.Card);
-                    Console.WriteLine(msg.NickName);
-                    Console.WriteLine(author.IdentifyNumber);
-                    Console.WriteLine(channel.Name);
                 }
                 catch (Exception ex){
                     _logger.Warn(ex, "数据包转换出错");
@@ -117,7 +109,39 @@ namespace RumDice.Core {
             _client.MessagePinned += (before, after, channel, @operator) => Task.CompletedTask;
             _client.MessageUnpinned += (before, after, channel, @operator) => Task.CompletedTask;
 
-            _client.DirectMessageReceived += (message, author, channel) => Task.CompletedTask;
+            _client.DirectMessageReceived += (message, author, channel) => {
+                if ((bool)author.IsBot)
+                    return Task.CompletedTask;
+
+                PrivateMsg msg = new PrivateMsg();
+
+                DateTime dtStart = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1));
+                TimeSpan toNow = message.Timestamp.Subtract(dtStart);
+                long timeStamp = toNow.Ticks;
+                long time = long.Parse(timeStamp.ToString().Substring(0, timeStamp.ToString().Length - 4));
+                try {
+                    msg.BotType = BotType.KOOKbot;
+                    msg.Time = time;
+                    //msg.Selfid
+                    msg.PostType = PostType.Message;
+                    msg.MsgType = MsgType.Private;
+                    msg.MsgSubType = MsgSubType.Friend;
+                    msg.UserID = (long)message.Author.Id;
+                    msg.Msg = message.CleanContent;
+                    msg.RawMsg = message.RawContent;
+                    //msg.Font
+                    msg.NickName = author.Username;
+                    //msg.Sex
+                    //msg.Age
+                }
+                catch (Exception ex) {
+                    _logger.Warn(ex, "数据包转换出错");
+                }
+
+                mp.RecvPrivateMsg(msg);
+
+                return Task.CompletedTask;
+            };
             _client.DirectMessageDeleted += (message, author, channel) => Task.CompletedTask;
             _client.DirectMessageUpdated += (before, after, author, channel) => Task.CompletedTask;
 
@@ -142,7 +166,11 @@ namespace RumDice.Core {
             _client.EmoteDeleted += (emote, guild) => Task.CompletedTask;
             _client.EmoteUpdated += (before, after, guild) => Task.CompletedTask;
 
-            _client.JoinedGuild += guild => Task.CompletedTask;
+            _client.JoinedGuild += guild => {
+                _client.StopAsync();
+                _client.StartAsync();
+                return Task.CompletedTask;
+            };
             _client.LeftGuild += guild => Task.CompletedTask;
             _client.GuildUpdated += (before, after) => Task.CompletedTask;
             _client.GuildAvailable += guild => Task.CompletedTask;
@@ -161,16 +189,33 @@ namespace RumDice.Core {
             string referenceId = null;
             var channel = await _client.GetChannelAsync((ulong)send.GroupID);
             if (channel is SocketTextChannel textChannel) {
-                var result = await textChannel.SendTextAsync(send.Msg,
-                    referenceId != null ? new Quote(Guid.Parse(referenceId)) : null);
+                if(send is not KookSend ks) {
+                    var result = await textChannel.SendTextAsync(send.Msg);
+                } else {
+                    if (ks.KookMsgType==KookMsgType.Code) {
+                        send.Msg = $"`{send.Msg}`";
+                    }
+                    var result = await textChannel.SendTextAsync(send.Msg);
+                }
                 return;
             }
-
             return;
         }
 
         public async ValueTask SendPrivateMsg(Send send) {
-            throw new NotImplementedException();
+            var user = await _client.GetUserAsync((ulong)send.UserID);
+            if(user is SocketUser u) {
+                if(send is not KookSend ks) {
+                    var result = await u.SendTextAsync(send.Msg);
+                } else {
+                    if(ks.KookMsgType == KookMsgType.Code) {
+                        send.Msg = $"`{send.Msg}`";
+                    }
+                    var result = await u.SendTextAsync(send.Msg);
+                }
+                return;
+            }
+            return;
         }
     }
 }

@@ -62,11 +62,21 @@ namespace RumDice.Framework {
             return msg;
         }
 
-        public Send MakeSend(string msg, Post post) {
-            var send = new Send();
+        public Send MakeSend(string msg, Post post,KookMsgType type=KookMsgType.Code) {
+            Send send;
+            switch (post.BotType) {
+                case BotType.QQbot:
+                    send = new QQSend();
+                    break;
+                case BotType.KOOKbot:
+                    send = new KookSend(type);
+                    break;
+                default:
+                    send = new Send();
+                    break;
+            }
             send.Msg = msg;
             send.MsgType=GetMsgType(post);
-            send.BotType = post.BotType;
             switch (send.MsgType) {
                 case MsgType.Private:
                     var pm=(PrivateMsg)post;
@@ -82,10 +92,10 @@ namespace RumDice.Framework {
             return send;
         }
 
-        public List<Send> MakeSend(List<string> msgs, Post post) {
+        public List<Send> MakeSend(List<string> msgs, Post post, KookMsgType type = KookMsgType.Code) {
             var res = new List<Send>();
             foreach (string msg in msgs) {
-                res.Add(MakeSend(msg, post));
+                res.Add(MakeSend(msg, post,type));
             }
             return res;
         }

@@ -103,7 +103,6 @@ namespace RumDice.Core {
                 if (_mode == 1) {
                     _logger.Info("MessagePipeline", "发信：" + JsonConvert.SerializeObject(item));
                 }
-                Console.WriteLine(item.BotType + " " + item.MsgType);
                 if(item.BotType==BotType.QQbot) {
                     if (item.MsgType == MsgType.Group) {
                         _qqConnector.SendGroupMsg(item);
@@ -123,6 +122,18 @@ namespace RumDice.Core {
                     }
                 }
                 if(item.BotType== BotType.KOOKbot) {
+                    if (item.MsgType == MsgType.Group) {
+                        _kookConnector.SendGroupMsg(item);
+                        continue;
+                    }
+                    if (item.MsgType == MsgType.Private) {
+                        _kookConnector.SendPrivateMsg(item);
+                        continue;
+                    }
+                    if (item.UserID != 0) {
+                        _kookConnector.SendPrivateMsg(item);
+                        continue;
+                    }
                     if (item.GroupID != 0) {
                         _kookConnector.SendGroupMsg(item);
                         continue;

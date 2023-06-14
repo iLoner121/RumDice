@@ -26,10 +26,6 @@ namespace RumDice.Framework {
         /// </summary>
         public long UserID { get; set; }
         /// <summary>
-        /// 因为kook它不是用id而是用用户名+四位标识码的，所以我加了个这个参数
-        /// </summary>
-        public string? Username { get; set; }
-        /// <summary>
         /// 纯文字消息String
         /// </summary>
         public string Msg { get; set; }

@@ -6,6 +6,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Framework {
+    // kook 卡片预设
+    public enum KookMsgType {
+        /// <summary>
+        /// 文本格式
+        /// </summary>
+        Text = 0,
+        /// <summary>
+        /// 代码块格式
+        /// </summary>
+        Code = 1,
+    }
     /// <summary>
     /// 处理信息的辅助类
     /// </summary>
@@ -43,14 +54,14 @@ namespace RumDice.Framework {
         /// <param name="msg"></param>
         /// <param name="post"></param>
         /// <returns></returns>
-        Send MakeSend(string msg,Post post);
+        Send MakeSend(string msg,Post post,KookMsgType type= KookMsgType.Code);
         /// <summary>
         /// 制作多条回信包
         /// </summary>
         /// <param name="msgs"></param>
         /// <param name="post"></param>
         /// <returns></returns>
-        List<Send> MakeSend(List<string> msgs, Post post);
+        List<Send> MakeSend(List<string> msgs, Post post,KookMsgType type = KookMsgType.Code);
 
         /// <summary>
         /// 生成输出语句

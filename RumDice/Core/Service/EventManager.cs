@@ -20,6 +20,7 @@ namespace RumDice.Core {
         readonly IServiceManager _serviceManager;
         readonly IServiceProvider _serviceProvider;
         readonly IRumLogger _logger;
+        readonly IMsgTool _msgTool=new MsgTool();
 
         readonly int _minPriority;
         readonly int _maxPriority;
@@ -104,15 +105,15 @@ namespace RumDice.Core {
                     return;
                 }
                 if (res is string s) {
-                    await SendMessage(post, s);
+                    await SendMessage(s,post);
                     return;
                 }
                 if (res is Send send) {
-                    await SendMessage(send);
+                    await SendMessage(send, post);
                     return;
                 }
                 if (res is List<Send> sends) {
-                    await SendMessage(sends);
+                    await SendMessage(sends, post);
                     return;
                 }
                 _logger.Warn("EventManager", $"该回复接口具备错误的返回格式：{method.Name}");
@@ -249,7 +250,7 @@ namespace RumDice.Core {
         /// <param name="post"></param>
         /// <param name="s"></param>
         /// <returns></returns>
-        async ValueTask SendMessage(Post post,string s) {
+        async ValueTask SendMessage(string s,Post post) {
             BaseMsg sender = new();
             try {
                 sender = (BaseMsg)post;
@@ -258,26 +259,13 @@ namespace RumDice.Core {
                 _logger.Error(ex, "该消息无法转换为Msg类型，无法生成回信包");
                 return;
             }
-            Send send = new();
-            send.MsgType=sender.MsgType;
-            send.Msg = s;
-            send.BotType=sender.BotType;
-            switch (send.MsgType) {
-                case MsgType.Private:
-                    send.UserID = ((PrivateMsg)post).UserID;
-                    break;
-                case MsgType.Group:
-                    send.GroupID = ((GroupMsg)post).GroupID;
-                    break;
-                default:
-                    return;
-            }
-            SendMessage(new List<Send> { send });
+            Send send = _msgTool.MakeSend(s, post);
+            SendMessage(new List<Send> { send },post);
         }
-        async ValueTask SendMessage(Send send) {
-            SendMessage(new List<Send> { send });
+        async ValueTask SendMessage(Send send,Post post) {
+            SendMessage(new List<Send> { send },post);
         }
-        async ValueTask SendMessage(List<Send> sends) {
+        async ValueTask SendMessage(List<Send> sends,Post post) {
 
             if(_messagePipeline==null) {
                 _messagePipeline = (IMsgPipeline)_serviceProvider.GetService<IMsgPipeline>();
@@ -285,11 +273,8 @@ namespace RumDice.Core {
             List<Send> sendquene = new();
             foreach(var send in sends) {
                 send.Msg = UseMyService(send.Msg);
-                var temps = SplitSend(send);
+                var temps = SplitSend(send,post);
                 sendquene.AddRange(temps);
-            }
-            foreach(var send in sendquene) {
-                Console.WriteLine(send.Msg);
             }
             _messagePipeline.SendMsg(sendquene);
         }   
@@ -383,18 +368,14 @@ namespace RumDice.Core {
             return s;
         }
 
-        List<Send> SplitSend(Send send) {
+        List<Send> SplitSend(Send send,Post post) {
             string msg = send.Msg;
             var splitMsg = msg.Split("(split)");
-            List<Send> res = new();
-            foreach(string s in splitMsg) {
-                Send tempSend = new();
-                tempSend.Msg = s;
-                tempSend.BotType = send.BotType;
-                tempSend.UserID = send.UserID;
-                tempSend.GroupID= send.GroupID;
-                tempSend.MsgType= send.MsgType;
-                res.Add(tempSend);
+            List<Send> res;
+            if(send is KookSend ks) {
+                res = _msgTool.MakeSend(splitMsg.ToList(), post,ks.KookMsgType);
+            } else {
+                res = _msgTool.MakeSend(splitMsg.ToList(), post);
             }
             _logger.Debug("EventManager", "回复语句已分段完毕");
             return res;
