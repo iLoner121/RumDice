@@ -42,6 +42,7 @@ namespace RumDice.Core {
             _qqConnector = qqConnector;
             _logger = logger;
             _kookConnector = kookConnector;
+            
         }
 
 

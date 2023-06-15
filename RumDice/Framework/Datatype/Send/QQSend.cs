@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Framework {
-    public class QQSend : Send{
+    public class QQSend : Send,ICloneable{
         public QQSend() {
             BotType = BotType.QQbot;
         }

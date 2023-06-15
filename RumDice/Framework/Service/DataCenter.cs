@@ -1,4 +1,6 @@
-﻿using CSScriptLib;
+﻿using CSScripting;
+using CSScriptLib;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RumDice.Framework.Datatype;
@@ -7,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -71,7 +74,16 @@ namespace RumDice.Framework {
             tempObj= JsonConvert.DeserializeObject(jsonString, type);
             if (tempObj == null)
                 return;
+
             action(tempObj);
+        }
+        object GetUnknownObj(string jsonString,Type type) {
+            var tempObj = Activator.CreateInstance(type);
+            tempObj = JsonConvert.DeserializeObject(jsonString, type);
+            if (tempObj == null)
+                return null;
+
+            return tempObj;
         }
 
         /// <summary>
@@ -81,7 +93,7 @@ namespace RumDice.Framework {
         /// <param name="readType">返回：读取类型</param>
         /// <param name="objType">返回：文件类型string</param>
         /// <returns>序列化后的文件对象</returns>
-        object ReadFile(string path, out int readType, out Type objType,Type? t = null,Action<object>? action=null) {
+        object ReadFile(string path, out int readType, out Type objType,Type? t = null,Action<object>? action=null,bool? ro=null) {
             readType = -1;
             objType = null;
             if (!File.Exists(path)) {
@@ -102,7 +114,11 @@ namespace RumDice.Framework {
             try {
                 // 如果json中没有标明类型则返回null
                 if (!jObj.ContainsKey("fileType")) {
-                    if(t != null&&action!=null) {
+                    if (t != null) {
+                        if(ro!=null)
+                            return GetUnknownObj(JsonString,t);
+                        if (action == null)
+                            return null;
                         HandleUnknownFile(JsonString, t, action);
                     }
                     return null;
@@ -185,6 +201,89 @@ namespace RumDice.Framework {
             return true;
         }
 
+        bool SaveOrCreate(string content,string dicpath,string fullpath) {
+            try {
+                if (File.Exists(fullpath)) {
+                    File.Delete(fullpath);
+                } else {
+                    if (!Directory.Exists(dicpath)) {
+                        Directory.CreateDirectory(dicpath);
+                    }
+                }
+
+                // 写入文件
+                _logger.Debug("DataCenter", "开始向硬盘写入文件");
+                FileStream fs = new FileStream(fullpath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                fs.Seek(0, SeekOrigin.Begin);
+                fs.SetLength(0);
+                StreamWriter sw = new StreamWriter(fs, Encoding.UTF8);
+                sw.WriteLine(content);
+                sw.Close();
+                return true;
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "写入文件失败");
+                return false;
+            }
+        }
+
+        bool HandlePath(string? path, string? name, string suffix, out string dicpath, out string fullpath, out string pathWithName) {
+            dicpath = String.Empty;
+            fullpath=String.Empty;
+            pathWithName = String.Empty;
+            if (path == null && name == null)
+                return false;
+            if (name != null) {
+                if (name.Contains("\\"))
+                    return false;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            if (path == null) {
+                dicpath = _root;
+                sb.Append((name.StartsWith("\\") ? name : ("\\" + name)));
+                sb.Append(name.EndsWith(suffix) ? "" : suffix);
+                pathWithName = sb.ToString();
+                sb.Insert(0, _root);
+                fullpath = sb.ToString();
+                return true;
+            }
+            if (name != null) {
+                sb.Append((path.StartsWith("\\") ? path : ("\\" + path)));
+                sb.Insert(0, _root);
+                dicpath = sb.ToString();
+                sb.Remove(0, _root.Length);
+                sb.Append(name.StartsWith("\\") ? "" : "\\");
+                sb.Append(name.EndsWith(suffix) ? name : (name + suffix));
+                pathWithName = sb.ToString();
+                sb.Insert(0, _root);
+                fullpath = sb.ToString();
+                return true;
+            }
+            if (!path.Contains("\\")) {
+                dicpath = _root;
+                sb.Append((path.StartsWith("\\") ? path : ("\\" + path)));
+                sb.Append(path.EndsWith(suffix) ? "" : suffix);
+                pathWithName = sb.ToString();
+                sb.Insert(0, _root);
+                fullpath = sb.ToString();
+                return true;
+            }
+            int index = path.LastIndexOf("\\");
+            sb.Append(path.StartsWith("\\") ? "" : "\\");
+            sb.Append(path.Substring(0, index));
+            sb.Insert(0, _root);
+            dicpath = sb.ToString();
+            sb.Remove(0, sb.Length);
+            sb.Append(path.StartsWith("\\") ? "" : "\\");
+            sb.Append(path);
+            sb.Append(path.EndsWith(suffix) ? "" : suffix);
+            pathWithName = sb.ToString();
+            sb.Insert(0, _root);
+            fullpath = sb.ToString();
+            return true;
+        }
+
         #endregion
 
         public object GetObj(string path) {
@@ -242,7 +341,7 @@ namespace RumDice.Framework {
             return true;
         }
 
-        public List<object> GetByType(string type) {
+        public List<object> GetObjByType(string type) {
             List<object> res = new();
             foreach(var fileInfo in FileTable.Values) {
                 if (fileInfo.ObjType.Name == type) {
@@ -254,7 +353,7 @@ namespace RumDice.Framework {
             return res;
         }
 
-        public List<object> GetByPath(string path) {
+        public List<object> GetObjByPath(string path) {
             // 获取全路径
             string fullPath=_root+(path.StartsWith("\\")?"":"\\")+path;
             List<object> res = new();
@@ -269,46 +368,47 @@ namespace RumDice.Framework {
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public bool SaveFile(object obj, Type type,string path, int readType = -1) {
-            // 为路径结尾添加.json
-            path = (path.EndsWith(".json") ? path : ( path + ".json"));
+        public bool SaveFile(object obj, Type type,string? path=null, string? name=null,int readType = -1) {
+            // 处理路径
+            if(!HandlePath(path, name, ".json", out string dicpath, out string fullpath, out string pathWithFilename))
+                return false;
+
             // 如果文件已被读取过
-            if (FileTable.ContainsKey(path)) {
+            if (FileTable.ContainsKey(pathWithFilename)) {
                 // 文件类型不匹配
-                if (FileTable[path].ObjType != type) {
+                if (FileTable[pathWithFilename].ObjType != type) {
                     return false;
                 }
                 if (readType == -1)
-                    readType = FileTable[path].ReadType;
+                    readType = FileTable[pathWithFilename].ReadType;
             // 如果文件未被读取过
             } else {
-                // 默认读取类型为3
+                // 默认读取类型为1
                 if (readType == -1)
                     readType = 1;
 
                 // 添加到FileTable
                 var fileInfo = new MyFileInfo();
-                fileInfo.Name = path;
+                fileInfo.Name = pathWithFilename;
                 fileInfo.ReadType = readType;
-                fileInfo.Location = _root + (path.StartsWith("\\") ? "" : "\\") + path;
+                fileInfo.Location = fullpath;
                 fileInfo.ObjType = type;
-                FileTable.Add(path, fileInfo);
+                FileTable.Add(pathWithFilename, fileInfo);
             }
             // 如果内存中已经存在实例
-            if(ObjTable.ContainsKey(path)) {
+            if(ObjTable.ContainsKey(pathWithFilename)) {
                 // 更新实例
-                var objInfo = ObjTable[path];
+                var objInfo = ObjTable[pathWithFilename];
                 objInfo.Obj = obj;
-                ObjTable.Remove(path,out MyObjInfo? o);
+                ObjTable.Remove(pathWithFilename,out MyObjInfo? o);
                 if(readType != 1) {
-                    if (!ObjTable.TryAdd(path, objInfo))
+                    if (!ObjTable.TryAdd(pathWithFilename, objInfo))
                         return false;
                 }
             }
             try {
                 // 序列化
                 string jsonString = JsonConvert.SerializeObject(obj);
-
                 // 添加必要字段
                 JObject jObj = JObject.Parse(jsonString);
                 if (!jObj.ContainsKey("readType")) {
@@ -319,19 +419,7 @@ namespace RumDice.Framework {
                 }
                 jsonString= JsonConvert.SerializeObject(jObj);
 
-                if (File.Exists(FileTable[path].Location)) {
-                    File.Delete(FileTable[path].Location);
-                }
-
-                // 写入文件
-                _logger.Debug("DataCenter","开始向硬盘写入文件");
-                FileStream fs = new FileStream(FileTable[path].Location, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-                fs.Seek(0, SeekOrigin.Begin);
-                fs.SetLength(0);
-                StreamWriter sw = new StreamWriter(fs, Encoding.UTF8);
-                sw.WriteLine(jsonString);
-                sw.Close();
-                return true;
+                return SaveOrCreate(jsonString, dicpath, fullpath);
             }
             catch {
                 return false;
@@ -339,8 +427,14 @@ namespace RumDice.Framework {
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public bool SaveFile<T>(T obj,string path,int readType=-1) {
-            return SaveFile(obj, typeof(T), path, readType);
+        public bool SaveFile<T>(T obj,string? path=null,string? name=null,int readType=-1) {
+            if (path == null && name == null)
+                return false;
+            if (name != null) {
+                if (name.Contains("\\"))
+                    return false;
+            }
+            return SaveFile(obj, typeof(T), path, name,readType);
         }
 
         public void Initialize(AppSetting appSetting,string RootDic) {
@@ -348,7 +442,7 @@ namespace RumDice.Framework {
             _root = RootDic + AppSetting.FileConfig.RepositoryRoot;
         }
 
-        public async ValueTask ScanFile() {
+        public async ValueTask ScanAll() {
             if (!Directory.Exists(_root)) {
                 Directory.CreateDirectory(_root);
             }
@@ -361,16 +455,93 @@ namespace RumDice.Framework {
             _logger.Debug("DataCenter", "本地文件扫描完成");
         }
 
-        public async ValueTask ScanFile(string path, Type type, Action<object>? action) {
-            if(!Directory.Exists(_root+path)) { 
-                Directory.CreateDirectory(_root+path);
+        public async ValueTask CustomScan(string path, Type type, Action<object>? action) {
+            if(!Directory.Exists(_root+ (path.StartsWith("\\") ? "" : "\\") +path)) { 
+                Directory.CreateDirectory(_root + (path.StartsWith("\\") ? "" : "\\") + path);
             }
-            DirectoryInfo dir = new DirectoryInfo(_root+path);
+            DirectoryInfo dir = new DirectoryInfo(_root + (path.StartsWith("\\") ? "" : "\\") +path);
             var files = dir.GetFiles("*.json",System.IO.SearchOption.AllDirectories);
             foreach (var file in files) {
                 TryAddNewFile(file.FullName,type,action);
             }
             _logger.Debug("DataCenter", "本地文件扫描完成");
         }
+        public List<object> CustomScan(string path, Type type) {
+            var res = new List<object>();
+            if (!Directory.Exists(_root +(path.StartsWith("\\")?"":"\\")+ path)) {
+                Directory.CreateDirectory(_root + (path.StartsWith("\\") ? "" : "\\") + path);
+            }
+            DirectoryInfo dir = new DirectoryInfo(_root + (path.StartsWith("\\") ? "" : "\\") + path);
+            var files = dir.GetFiles("*.json", System.IO.SearchOption.AllDirectories);
+            foreach (var file in files) {
+                var r =ReadFile(file.FullName, out int i, out Type t, type, ro: true);
+                if(r!=null)
+                    res.Add(r);
+            }
+            _logger.Debug("DataCenter", "本地文件扫描完成");
+            return res;
+        }
+
+        public async ValueTask CustomRead(string path, Type type, Action<object>? action) {
+            if (!path.EndsWith(".json"))
+                path += ".json";
+            string fullpath = _root + (path.StartsWith("\\") ? "" : "\\") + path;
+            if (!File.Exists(fullpath)) {
+                return;
+            }
+            TryAddNewFile(fullpath, type, action);
+            _logger.Debug("DataCenter", "本地文件扫描完成");
+        }
+
+        public object CustomRead(string path, Type type) {
+            if (!path.EndsWith(".json"))
+                path += ".json";
+            string fullpath = _root + (path.StartsWith("\\") ? "" : "\\") + path;
+            if (!File.Exists(fullpath)) {
+                return null;
+            }
+            var r = ReadFile(fullpath,out int i,out Type t,type, ro: true);
+            if (r == null)
+                return null;
+            _logger.Debug("DataCenter", "本地文件扫描完成");
+            return r;
+        }
+
+
+
+        public string ReadTxtFile(string path) {
+            if (!File.Exists(path)) {
+                _logger.Warn("DataCenter", $"磁盘内不存在此目标文件：{path}");
+                return null;
+            }
+            // 读取文件
+            string txtString = null;
+            try {
+                txtString = File.ReadAllText(path, Encoding.UTF8);
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "读取文件错误");
+                return null;
+            }
+            return txtString;
+        }
+
+        public bool TryReadTxtFile(string path, out string txtString) {
+            txtString = ReadTxtFile(path);
+            if(txtString == null) {
+                return false;
+            }
+            return true;
+        }
+
+        public bool SaveTxtFile(string content, string? path=null,string? name=null) {
+            // 处理路径
+            if (!HandlePath(path, name, ".txt", out string dicpath, out string fullpath, out string pathWithFilename))
+                return false;
+
+            return SaveOrCreate(content, dicpath, fullpath);
+        }
+
+
     }
 }

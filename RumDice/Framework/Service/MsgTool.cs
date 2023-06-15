@@ -99,5 +99,19 @@ namespace RumDice.Framework {
             }
             return res;
         }
+
+        public List<Send> MakeSend(List<string> msgs,Send send) {
+            var res = new List<Send>(msgs.Count);
+            foreach (string msg in msgs) {
+                res.Add(MakeSend(msg, send));
+            }
+            return res;
+        }
+
+        public Send MakeSend(string msg,Send send) {
+            var res = (Send)send.Clone();
+            res.Msg = msg;
+            return res;
+        }
     }
 }

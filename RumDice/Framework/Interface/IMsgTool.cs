@@ -51,17 +51,34 @@ namespace RumDice.Framework {
         /// <summary>
         /// 制作回信包
         /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="post"></param>
-        /// <returns></returns>
+        /// <param name="msg">回信包的消息内容</param>
+        /// <param name="post">该回信包所回复的post</param>
+        /// <param name="type">如果生成的是Kook回信包，那么该消息的显示类型（默认为行内代码）</param>
+        /// <returns>根据post生成的对应私聊/群聊以及机器人类型的回信包</returns>
         Send MakeSend(string msg,Post post,KookMsgType type= KookMsgType.Code);
         /// <summary>
         /// 制作多条回信包
         /// </summary>
-        /// <param name="msgs"></param>
-        /// <param name="post"></param>
-        /// <returns></returns>
+        /// <param name="msgs">多条回信包的消息内容</param>
+        /// <param name="post">该回信包所回复的post</param>
+        /// <param name="type">如果生成的是Kook回信包，那么该消息的显示类型（默认为行内代码）</param>
+        /// <returns>根据post生成的对应私聊/群聊以及机器人类型的回信包</returns>
         List<Send> MakeSend(List<string> msgs, Post post,KookMsgType type = KookMsgType.Code);
+
+        /// <summary>
+        /// 复制回信包模式
+        /// </summary>
+        /// <param name="msg">新回信包的消息内容</param>
+        /// <param name="send">原回信包</param>
+        /// <returns>和原回信包模式相同的新对象</returns>
+        Send MakeSend(string msg, Send send);
+        /// <summary>
+        /// 复制回信包模式
+        /// </summary>
+        /// <param name="msgs">新回信包的消息内容</param>
+        /// <param name="send">原回信包</param>
+        /// <returns>和原回信包模式相同的新对象</returns>
+        List<Send> MakeSend(List<string> msgs, Send send);
 
         /// <summary>
         /// 生成输出语句

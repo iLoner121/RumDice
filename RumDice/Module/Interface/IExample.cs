@@ -56,6 +56,5 @@ namespace RumDice.Module {
         // 声明内置服务
         [MyService("echotest")]
         string EchoTest(string s);
-
     }
 }

@@ -142,7 +142,7 @@ namespace RumDice.Module {
             // 设置remark
             deck.remark = (deck.remark == null||deck.remark==string.Empty) ? "汇总牌堆" : deck.remark;
             // 用本地其他牌堆的内容填补汇总牌堆
-            var otherDeck = dataCenter.GetByType("Deck");
+            var otherDeck = dataCenter.GetObjByType("Deck");
             foreach(var item in otherDeck) {
                 if (item is not Deck)
                     continue;
@@ -156,9 +156,9 @@ namespace RumDice.Module {
                 }
             }
             // 尝试获取没有标注为牌堆的数据类型
-            dataCenter.ScanFile(location, typeof(Dictionary<string, List<string>>), MergeDeck);
+            dataCenter.CustomScan(location, typeof(Dictionary<string, List<string>>), MergeDeck);
 
-            dataCenter.SaveFile<Deck>(deck,location+allDeck,3);
+            dataCenter.SaveFile<Deck>(deck,location+allDeck,ReadType:3);
             deck = null;
         }
 

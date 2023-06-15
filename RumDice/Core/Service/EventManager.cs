@@ -25,6 +25,8 @@ namespace RumDice.Core {
         readonly int _minPriority;
         readonly int _maxPriority;
 
+
+
         IMsgPipeline _messagePipeline;
 
 
@@ -277,6 +279,7 @@ namespace RumDice.Core {
                 sendquene.AddRange(temps);
             }
             _messagePipeline.SendMsg(sendquene);
+            HandleEvent(AllType.Send, post);
         }   
 
         /// <summary>
@@ -371,12 +374,8 @@ namespace RumDice.Core {
         List<Send> SplitSend(Send send,Post post) {
             string msg = send.Msg;
             var splitMsg = msg.Split("(split)");
-            List<Send> res;
-            if(send is KookSend ks) {
-                res = _msgTool.MakeSend(splitMsg.ToList(), post,ks.KookMsgType);
-            } else {
-                res = _msgTool.MakeSend(splitMsg.ToList(), post);
-            }
+            List<Send> res = new MsgTool().MakeSend(splitMsg.ToList(), send);
+            
             _logger.Debug("EventManager", "回复语句已分段完毕");
             return res;
         }

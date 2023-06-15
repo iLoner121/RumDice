@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Framework {
-    public class KookSend : Send{
+    public class KookSend : Send,ICloneable{
         public ICard? Card { get; set; }
         public KookMsgType KookMsgType { get; set; }
         public KookSend(KookMsgType kookMsgType = KookMsgType.Code) {

@@ -346,8 +346,8 @@ namespace RumDice.Core {
                 returnWordTable.table.Add(name, "{0}");
             }
             // 存储回复词表
-            _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable , 3);
-            _dataCenter.SaveFile(returnWordTable,Setting.FileConfig.ReturnWordBackup , 1);
+            _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable , ReadType:3);
+            _dataCenter.SaveFile(returnWordTable,Setting.FileConfig.ReturnWordBackup , ReadType: 1);
 
         }
     }

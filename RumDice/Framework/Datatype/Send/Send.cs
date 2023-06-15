@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 回复消息类型
     /// </summary>
-    public class Send {
+    public class Send :ICloneable {
         /// <summary>
         /// 回复类型为群聊/私聊（可不填写）
         /// </summary>
@@ -35,5 +35,8 @@ namespace RumDice.Framework {
         /// </summary>
         public BotType BotType { get; set; }
 
+        public object Clone() {
+            return this.MemberwiseClone();
+        }
     }
 }

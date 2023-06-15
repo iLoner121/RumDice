@@ -22,6 +22,7 @@ namespace RumDice.Core {
         readonly IRumLogger _logger;
         readonly Tester _tester;
         readonly IEventManager _eventManager;
+        readonly IRumTimer _rumTimer;
         public Initializer(ICoreData globalData,
             IServiceProvider serviceProvider,
             IServiceManager serviceManager,
@@ -31,7 +32,8 @@ namespace RumDice.Core {
             Tester tester,
             IMsgPipeline messagePipeline,
             IRumLogger logger,
-            IEventManager eventManager) {
+            IEventManager eventManager,
+            IRumTimer rumTimer) {
             _globalData = globalData;
             _serviceProvider = serviceProvider;
             _serviceManager = serviceManager;
@@ -42,6 +44,7 @@ namespace RumDice.Core {
             _messagePipeline = messagePipeline;
             _logger = logger;
             _eventManager = eventManager;
+            _rumTimer = rumTimer;
         }
 
         public async Task StartAsync(CancellationToken token) {
@@ -59,7 +62,7 @@ namespace RumDice.Core {
             // 初始化文件管理器
             _dataCenter.Initialize(_globalData.Setting,_globalData.RootDic);
             // 扫描所有文件
-            await _dataCenter.ScanFile();
+            await _dataCenter.ScanAll();
             _logger.Info("Initializer", "文件系统已初始化");
             #endregion
             #region 设置信息
@@ -77,7 +80,10 @@ namespace RumDice.Core {
             await _eventManager.HandleEvent(AllType.Start, new Post());
             _logger.Info("Initializer", "监听启动的服务已执行完毕");
 
-            _logger.Info("Initializer", "初始化已完成，3秒后开始启动");
+            await _rumTimer.StartTimer();
+            _logger.Info("Initializer", "定时器已初始化，10秒后开始计时");
+
+            _logger.Info("Initializer", "初始化已完成，3秒后开始启动服务");
             Task.Delay(3000).Wait();
 
             if (_globalData.Test == 0) {

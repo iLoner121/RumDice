@@ -49,6 +49,8 @@ namespace RumDice.Core {
         /// </summary>
         Dictionary<AllType, List<MyMethodInfo>> ListenerTable { get; }
 
+        
+
 
         /// <summary>
         /// 最小（高）优先级
