@@ -30,6 +30,7 @@ namespace RumDice.Core.Startup {
                         services.AddSingleton<IMsgPipeline, MsgPipeline>();
                         services.AddSingleton<IRumLogger, RumLogger>();
                         services.AddSingleton<IRumTimer, RumTimer>();
+                        services.AddSingleton<IClientCPanel, ClientCPanel>();
                         services.AddSingleton<Tester>();
                         
                         // host

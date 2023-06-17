@@ -11,5 +11,6 @@ namespace RumDice.Core {
         ValueTask RunServer(string uri);
         ValueTask SendPrivateMsg(Send send);
         ValueTask SendGroupMsg(Send send);
+
     }
 }

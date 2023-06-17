@@ -28,6 +28,10 @@ namespace RumDice.Core {
             return;
         }
 
+        
+
+
+
         public async ValueTask RunServer(string uri) {
             _session = new CqWsSession(new CqWsSessionOptions() {
                 BaseUri = new Uri(uri),
@@ -425,14 +429,7 @@ namespace RumDice.Core {
 
                 mp.RecvGroupRequest(request);
                 next();
-
             });
-            
-
-
-
-            
-
 
             await _session.RunAsync();
             return;
