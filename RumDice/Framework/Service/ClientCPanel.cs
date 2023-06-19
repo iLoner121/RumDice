@@ -28,7 +28,8 @@ namespace RumDice.Framework {
             Instance = this;
         }
 
-        public async ValueTask SendMsg(string s, Post post) {
+
+        public void SendMsg(string s, Post post) {
             BaseMsg sender = new();
             try {
                 sender = (BaseMsg)post;
@@ -41,11 +42,49 @@ namespace RumDice.Framework {
             SendMsg(new List<Send> { send }, post);
         }
 
-        public async ValueTask SendMsg(Send send, Post post) {
+        public void SendMsg(Send send, Post post) {
             SendMsg(new List<Send> { send }, post);
         }
 
-        public async ValueTask SendMsg(List<Send> sends, Post post) {
+        public void SendMsg(List<Send> sends, Post post) {
+            if (_messagePipeline == null) {
+                _messagePipeline = (IMsgPipeline)_serviceProvider.GetService<IMsgPipeline>();
+            }
+            if (_eventManager == null) {
+                _eventManager = (IEventManager)_serviceProvider.GetService<IEventManager>();
+            }
+
+            List<Send> sendquene = new();
+            foreach (var send in sends) {
+                send.Msg = UseMyService(send.Msg);
+                var temps = SplitSend(send, post);
+                sendquene.AddRange(temps);
+            }
+            _messagePipeline.Send(sendquene);
+            _eventManager.HandleEvent(AllType.Send, post);
+        }
+
+        public async ValueTask SendMsgAsync(string s, Post post) {
+            BaseMsg sender = new();
+            try {
+                sender = (BaseMsg)post;
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "该消息无法转换为Msg类型，无法生成回信包");
+                return;
+            }
+            Send send = _msgTool.MakeSend(s, post);
+            await SendMsgAsync(new List<Send> { send }, post);
+        }
+
+        public async ValueTask SendMsgAsync(Send send, Post post) {
+            if(send==null) return;
+            await SendMsgAsync(new List<Send> { send }, post);
+        }
+
+        public async ValueTask SendMsgAsync(List<Send> sends, Post post) {
+            if(sends==null || sends.Count==0) return;
+
             if (_messagePipeline == null) {
                 _messagePipeline = (IMsgPipeline)_serviceProvider.GetService<IMsgPipeline>();
             }
@@ -59,8 +98,8 @@ namespace RumDice.Framework {
                 var temps = SplitSend(send, post);
                 sendquene.AddRange(temps);
             }
-            _messagePipeline.SendMsg(sendquene);
-            _eventManager.HandleEvent(AllType.Send, post);
+            _messagePipeline.Send(sendquene);
+            await _eventManager.HandleEvent(AllType.Send, post);
         }
 
         public List<Send> SplitSend(Send send, Post post) {
@@ -155,5 +194,35 @@ namespace RumDice.Framework {
             _logger.Debug("EventManager", "最终回复语句已经生成");
             return s;
         }
+
+        public void SendOperation(Send send) {
+            if (send == null)
+                return;
+            SendOperation(new List<Send> { send });
+        }
+
+        public void SendOperation(List<Send> sends) {
+            if (sends == null)
+                return;
+            if (sends.Count == 0)
+                return;
+            _messagePipeline.Send(sends);
+        }
+
+        public async ValueTask SendOperationAsync(Send send) {
+            if (send == null)
+                return;
+            await SendOperationAsync(new List<Send> { send });
+        }
+
+        public async ValueTask SendOperationAsync(List<Send> sends) {
+            await Task.Delay(0);
+            if (sends == null)
+                return;
+            if (sends.Count == 0)
+                return;
+            _messagePipeline.Send(sends);
+        }
+
     }
 }

@@ -86,22 +86,25 @@ namespace RumDice.Core {
             _logger.Info("Initializer", "初始化已完成，3秒后开始启动服务");
             Task.Delay(3000).Wait();
 
+            List<Task> tasks = new();
             if (_globalData.Test == 0) {
                 if (_globalData.Setting.ServerConfig.QQbot) {
                     _logger.Info("Initializer", "开始启动QQ客户端服务");
                     string uri = $"ws://{_globalData.Setting.ServerConfig.Location}:{_globalData.Setting.ServerConfig.Port}";
-                    _qqConnector.RunServer(uri);
+                    tasks.Add(_qqConnector.RunServerAsync(uri).AsTask());
                 }
                 if (_globalData.Setting.ServerConfig.KOOKbot) {
                     _logger.Info("Initializer", "开始启动Kook客户端服务");
-                    _kookConnector.RunServer(_globalData.Setting.ServerConfig.KookToken);
+                    tasks.Add(_kookConnector.RunServerAsync(_globalData.Setting.ServerConfig.KookToken).AsTask());
                 }
             } else {
                 _logger.Info("Initializer", "开始启动测试程序");
                 _tester.SetHandlePrivateMessage(_messagePipeline.RecvPrivateMsg);
                 _tester.SetHandleGroupMessage(_messagePipeline.RecvGroupMsg);
-                _tester.RunTest();
+                await _tester.RunTest();
+                return;
             }
+            Task.WaitAll(tasks.ToArray());
         }
 
         public Task StopAsync(CancellationToken token) {

@@ -7,10 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
-    public interface IClientConnector {
-        ValueTask RunServer(string uri);
-        ValueTask SendPrivateMsg(Send send);
-        ValueTask SendGroupMsg(Send send);
+    public interface IBaseClient {
+        void RunServer(string uri);
+        ValueTask RunServerAsync(string uri);
+        void SendPrivateMsg(Send send);
+        void SendGroupMsg(Send send);
 
     }
 }

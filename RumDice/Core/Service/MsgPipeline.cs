@@ -102,50 +102,118 @@ namespace RumDice.Core {
             while (_sendQueue.TryDequeue(out var item)) {
                 Task.Delay(random.Next(_minDuration, _maxDuration + 1)).Wait();
                 if (_mode == 1) {
-                    _logger.Info("MessagePipeline", "发信：" + JsonConvert.SerializeObject(item));
+                    _logger.Info("MsgPipeline", "发信：" + JsonConvert.SerializeObject(item));
+                    continue;
                 }
-                if(item.BotType==BotType.QQbot) {
-                    if (item.MsgType == MsgType.Group) {
-                        _qqConnector.SendGroupMsg(item);
-                        continue;
-                    }
-                    if (item.MsgType == MsgType.Private) {
-                        _qqConnector.SendPrivateMsg(item);
-                        continue;
-                    }
-                    if (item.UserID != 0) {
-                        _qqConnector.SendPrivateMsg(item);
-                        continue;
-                    }
-                    if (item.GroupID != 0) {
-                        _qqConnector.SendGroupMsg(item);
-                        continue;
-                    }
-                }
-                if(item.BotType== BotType.KOOKbot) {
-                    if (item.MsgType == MsgType.Group) {
-                        _kookConnector.SendGroupMsg(item);
-                        continue;
-                    }
-                    if (item.MsgType == MsgType.Private) {
-                        _kookConnector.SendPrivateMsg(item);
-                        continue;
-                    }
-                    if (item.UserID != 0) {
-                        _kookConnector.SendPrivateMsg(item);
-                        continue;
-                    }
-                    if (item.GroupID != 0) {
-                        _kookConnector.SendGroupMsg(item);
-                        continue;
-                    }
-                }
+                if (HandleOneBotOperation(item, item.BotType))
+                    continue;
+                if (HandleSendMsg(item, item.BotType))
+                    continue;
             }
             _isSending = false;
         }
 
+        bool HandleSendMsg(Send send,BotType botType) {
+            IBaseClient baseClient = null;
+            switch (botType) {
+                case BotType.QQbot:
+                    baseClient= _qqConnector;
+                    break;
+                case BotType.KOOKbot:
+                    baseClient= _kookConnector;
+                    break;
+                default:
+                    return false;
+            }
+            if (send.MsgType == MsgType.Group) {
+                baseClient.SendGroupMsg(send);
+                return true;
+            }
+            if (send.MsgType == MsgType.Private) {
+                baseClient.SendPrivateMsg(send);
+                return true;
+            }
+            if (send.UserID != 0) {
+                baseClient.SendPrivateMsg(send);
+                return true;
+            }
+            if (send.GroupID != 0) {
+                baseClient.SendGroupMsg(send);
+                return true;
+            }
+            return false;
+        }
 
-        public void SendMsg(List<Send> sends) {
+        bool HandleOneBotOperation(Send send,BotType botType) {
+            IOnebotClient onebotClient = null;
+            OneBotAction action;
+            switch (botType) {
+                case BotType.QQbot:
+                    if (send is not QQSend s)
+                        return false;
+                    onebotClient= _qqConnector;
+                    action = s.Action;
+                    break;
+                default:
+                    return false;
+            }
+            _logger.Info("MsgPipeline", $"向OneBot平台{botType}发送控制命令：{action}");
+            switch (action) {
+                case OneBotAction.RecallMsg:
+                    onebotClient.RecallMsg(send);
+                    break;
+                case OneBotAction.KickGroupMember:
+                    onebotClient.KickGroupMember(send);
+                    break;
+                case OneBotAction.BanGroupMember:
+                    onebotClient.BanGroupMember(send);
+                    break;
+                case OneBotAction.BanGroupAll:
+                    onebotClient.BanGroupAll(send);
+                    break;
+                case OneBotAction.CancelBanGroupMember:
+                    onebotClient.CancelBanGroupMember(send);
+                    break;
+                case OneBotAction.CancelBanGroupAll:
+                    onebotClient.CancelBanGroupAll(send);
+                    break;
+                case OneBotAction.SetGroupAdmin:
+                    onebotClient.SetGroupAdmin(send);
+                    break;
+                case OneBotAction.SetGroupCard:
+                    onebotClient.SetGroupCard(send);
+                    break;
+                case OneBotAction.SetGroupName:
+                    onebotClient.SetGroupName(send);
+                    break;
+                case OneBotAction.LeaveGroup:
+                    onebotClient.LeaveGroup(send);
+                    break;
+                case OneBotAction.SetGroupTitle:
+                    onebotClient.SetGroupTitle(send);
+                    break;
+                case OneBotAction.AcceptFriend:
+                    onebotClient.AcceptFriend(send);
+                    break;
+                case OneBotAction.AcceptGroup:
+                    onebotClient.AcceptGroup(send);
+                    break;
+                case OneBotAction.DeleteFriend:
+                    onebotClient.DeleteFriend(send);
+                    break;
+                case OneBotAction.DeleteNonFriend:
+                    onebotClient.DeleteNonFriend(send);
+                    break;
+                case OneBotAction.UploadGroupFile:
+                    onebotClient.UploadGroupFile(send);
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
+
+        public void Send(List<Send> sends) {
             try {
                 foreach (var send in sends) {
                     _sendQueue.Enqueue(send);
@@ -156,7 +224,8 @@ namespace RumDice.Core {
             }
         }
 
-        public void RecvMsg(Post post,AllType type) {
+
+        public void Recv(Post post,AllType type) {
             try {
                 _recvQueue.Enqueue((type,post));
             }
@@ -166,63 +235,63 @@ namespace RumDice.Core {
         }
 
         public void RecvPrivateMsg(Post post) {
-            RecvMsg(post, AllType.PrivateMsg);
+            Recv(post, AllType.PrivateMsg);
         }
 
         public void RecvGroupMsg(Post post) {
-            RecvMsg(post, AllType.GroupMsg);
+            Recv(post, AllType.GroupMsg);
         }
 
         public void RecvFriendRecallNotice(Post post) {
-            RecvMsg(post, AllType.FriendRecall);
+            Recv(post, AllType.FriendRecall);
         }
 
         public void RecvGroupRecallNotice(Post post) {
-            RecvMsg(post, AllType.GroupRecall);
+            Recv(post, AllType.GroupRecall);
         }
 
         public void RecvGroupIncreaseNotice(Post post) {
-            RecvMsg (post, AllType.GroupIncrease);
+            Recv (post, AllType.GroupIncrease);
         }
 
         public void RecvGroupDecreaseNotice(Post post) {
-            RecvMsg(post, AllType.GroupDecrease);
+            Recv(post, AllType.GroupDecrease);
         }
 
         public void RecvGroupAdminNotice(Post post) {
-            RecvMsg(post, AllType.GroupAdmin);
+            Recv(post, AllType.GroupAdmin);
         }
 
         public void RecvGroupBanNotice(Post post) {
-            RecvMsg(post, AllType.GroupBan);
+            Recv(post, AllType.GroupBan);
         }
 
         public void RecvFriendAddNotice(Post post) {
-            RecvMsg(post, AllType.FriendAdd);
+            Recv(post, AllType.FriendAdd);
         }
 
         public void RecvGroupPokeNotice(Post post) {
-            RecvMsg(post, AllType.GroupPoke);
+            Recv(post, AllType.GroupPoke);
         }
 
         public void RecvHonorNotice(Post post) {
-            RecvMsg(post, AllType.Honor);
+            Recv(post, AllType.Honor);
         }
 
         public void RecvTitleNotice(Post post) {
-            RecvMsg(post, AllType.Title);
+            Recv(post, AllType.Title);
         }
 
         public void RecvGroupCardNotice(Post post) {
-            RecvMsg(post, AllType.GroupCard);
+            Recv(post, AllType.GroupCard);
         }
 
         public void RecvFriendRequest(Post post) {
-            RecvMsg(post, AllType.FriendRequest);
+            Recv(post, AllType.FriendRequest);
         }
 
         public void RecvGroupRequest(Post post) {
-            RecvMsg(post, AllType.GroupRequest);
+            Recv(post, AllType.GroupRequest);
         }
 
     }

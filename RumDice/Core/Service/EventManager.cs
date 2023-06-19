@@ -110,15 +110,15 @@ namespace RumDice.Core {
                     return;
                 }
                 if (res is string s) {
-                    await _cpanel.SendMsg(s,post);
+                    await _cpanel.SendMsgAsync(s,post);
                     return;
                 }
                 if (res is Send send) {
-                    await _cpanel.SendMsg(send, post);
+                    await _cpanel.SendMsgAsync(send, post);
                     return;
                 }
                 if (res is List<Send> sends) {
-                    await _cpanel.SendMsg(sends, post);
+                    await _cpanel.SendMsgAsync(sends, post);
                     return;
                 }
                 _logger.Warn("EventManager", $"该回复接口具备错误的返回格式：{method.Name}");
@@ -160,7 +160,6 @@ namespace RumDice.Core {
 
             return false;
         }
-
 
         /// <summary>
         /// 复杂匹配
@@ -248,7 +247,5 @@ namespace RumDice.Core {
             }
             return true;
         }
-
-
     }
 }

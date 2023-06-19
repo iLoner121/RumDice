@@ -1,15 +1,17 @@
 ﻿using CSScripting;
 using EleCho.GoCqHttpSdk;
+using EleCho.GoCqHttpSdk.Action;
 using Microsoft.Extensions.DependencyInjection;
 using RumDice.Framework;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
-    public class QQClientConnector : IClientConnector {
+    public class QQClientConnector : IBaseClient,IOnebotClient {
         CqWsSession _session { get; set; } 
         readonly IServiceProvider _serviceProvider;
         readonly IRumLogger _logger;
@@ -19,20 +21,164 @@ namespace RumDice.Core {
             _logger = rumLogger;
         }
 
-        public async ValueTask SendPrivateMsg(Send send) {
+        public void SendPrivateMsg(Send send) {
             _session.SendPrivateMessage(send.UserID, new EleCho.GoCqHttpSdk.Message.CqMessage(send.Msg));
             return;
         }
-        public async ValueTask SendGroupMsg(Send send) {
+        public void SendGroupMsg(Send send) {
             _session.SendGroupMessage(send.GroupID, new EleCho.GoCqHttpSdk.Message.CqMessage(send.Msg));
             return;
         }
 
-        
+        public void RecallMsg(Send send) {
+            if (send is not RecallMsgSend s)
+                return;
+            _session.RecallMessage(s.MessageID);
+            return;
+        }
 
+        public void KickGroupMember(Send send) {
+            if (send is not KickGroupMemberSend s)
+                return;
+            _session.KickGroupMember(s.GroupID, s.UserID, s.RejectRequest);
+            return;
+        }
 
+        public void BanGroupMember(Send send) {
+            if (send is not BanGroupMemberSend s)
+                return;
+            _session.BanGroupMember(s.GroupID, s.UserID, s.Duration);
+            return;
+        }
 
-        public async ValueTask RunServer(string uri) {
+        public void BanGroupAll(Send send) {
+            if (send is not BanGroupAllSend s)
+                return;
+            _session.BanGroupAllMembers(s.GroupID);
+            return;
+        }
+
+        public void CancelBanGroupMember(Send send) {
+            if(send is not CancelBanGroupMemberSend s)
+                return;
+            _session.CancelBanGroupMember(s.GroupID, s.UserID);
+            return;
+        }
+
+        public void CancelBanGroupAll(Send send) {
+            if (send is not CancelBanGroupAllSend s)
+                return;
+            _session.CancelBanGroupAllMembers(s.GroupID);
+        }
+
+        public void SetGroupAdmin(Send send) {
+            if(send is not SetGroupAdminSend s)
+                return;
+            _session.SetGroupAdministrator(s.GroupID, s.UserID, s.Enable);
+            return;
+        }
+
+        public void SetGroupCard(Send send) {
+            if(send is not SetGroupCardSend s) 
+                return;
+            _session.SetGroupNickname(s.GroupID, s.UserID, s.CardName);
+            return;
+        }
+
+        public void SetGroupName(Send send) {
+            if (send is not SetGroupNameSend s)
+                return;
+            _session.SetGroupName(s.GroupID, s.GroupName);
+            return;
+        }
+
+        public void LeaveGroup(Send send) {
+            if (send is not LeaveGroupSend s)
+                return;
+            _session.LeaveGroup(s.GroupID);
+            return;
+        }
+
+        public void SetGroupTitle(Send send) {
+            if (send is not SetGroupTitleSend s)
+                return;
+            _session.SetGroupSpecialTitle(s.GroupID,s.UserID,s.Title);
+            return;
+        }
+
+        public void AcceptFriend(Send send) {
+            if (send is not AcceptFriendSend s)
+                return;
+            _session.ApproveFriendRequest(s.Flag,s.Remark);
+            return;
+        }
+
+        public void AcceptGroup(Send send) {
+            if (send is not AcceptGroupSend s)
+                return;
+            _session.ApproveGroupRequest(s.Flag, s.RequestType);
+            return;
+        }
+
+        public void DeleteFriend(Send send) {
+            if (send is not DeleteFriendSend s)
+                return;
+            _session.DeleteFriend(s.UserID);
+            return;
+        }
+
+        public void DeleteNonFriend(Send send) {
+            if (send is not DeleteNonFriendSend s)
+                return;
+            _session.DeleteUnidirectionalFriend(s.UserID);
+            return;
+        }
+
+        public void UploadGroupFile(Send send) {
+            if(send is not UploadGroupFileSend s)
+                return;
+            _session.UploadGroupFile(s.GroupID, s.FilePath, s.FileName);
+            return;
+        }
+
+        public List<CqGroup> GetGroupList() {
+            var gl = _session.GetGroupList();
+            List<CqGroup> res = new();
+            if (gl == null)
+                return res;
+            res = gl.Groups.ToList();
+            return res;
+        }
+
+        public List<CqGroupMember> GetMemberList(long groupID) {
+            var ml = _session.GetGroupMemberList(groupID);
+            List<CqGroupMember> res = new();
+            if(ml == null) return res;
+            res = ml.Members.ToList();
+            return res;
+        }
+
+        public List<CqFriend> GetFriendList() {
+            var fl = _session.GetFriendList();
+            List<CqFriend> res = new();
+            if(fl == null) return res;
+            res = fl.Friends.ToList();
+            return res;
+        }
+
+        public List<CqFriend> GetNonFriendList() {
+            var nfl = _session.GetUnidirectionalFriendList();
+            List<CqFriend> res = new();
+            if(nfl == null) return res;
+            res = nfl.Friends.ToList();
+            return res;
+        }
+
+        public void RunServer(string uri) {
+            RunServerAsync(uri).AsTask().Wait();
+        }
+
+        public async ValueTask RunServerAsync(string uri) {
             _session = new CqWsSession(new CqWsSessionOptions() {
                 BaseUri = new Uri(uri),
             });

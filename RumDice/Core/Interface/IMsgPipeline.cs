@@ -18,10 +18,10 @@ namespace RumDice.Core {
         /// </summary>
         /// <param name="sends"></param>
         /// <returns></returns>
-        void SendMsg(List<Send> sends);
+        void Send(List<Send> sends);
 
         
-        void RecvMsg(Post post,AllType type);
+        void Recv(Post post,AllType type);
 
         void RecvPrivateMsg(Post post);
         void RecvGroupMsg(Post post);

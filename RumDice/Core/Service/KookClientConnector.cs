@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Core {
-    public class KookClientConnector : IClientConnector {
+    public class KookClientConnector : IBaseClient {
         KookSocketClient _client { get; set; }
         readonly IServiceProvider _serviceProvider;
         readonly IRumLogger _logger;
@@ -27,8 +27,10 @@ namespace RumDice.Core {
             return Task.CompletedTask;
         }
 
-
-        public async ValueTask RunServer(string token) {
+        public void RunServer(string token) {
+            RunServerAsync(token).AsTask().Wait();
+        }
+        public async ValueTask RunServerAsync(string token) {
             var mp = _serviceProvider.GetRequiredService<IMsgPipeline>();
 
             _client = new KookSocketClient(new KookSocketConfig {
@@ -185,33 +187,33 @@ namespace RumDice.Core {
             await _client.StartAsync();
         }
 
-        public async ValueTask SendGroupMsg(Send send) {
+        public void SendGroupMsg(Send send) {
             string referenceId = null;
-            var channel = await _client.GetChannelAsync((ulong)send.GroupID);
+            var channel = _client.GetChannel((ulong)send.GroupID);
             if (channel is SocketTextChannel textChannel) {
                 if(send is not KookSend ks) {
-                    var result = await textChannel.SendTextAsync(send.Msg);
+                    var result = textChannel.SendTextAsync(send.Msg);
                 } else {
                     if (ks.KookMsgType==KookMsgType.Code) {
                         send.Msg = $"`{send.Msg}`";
                     }
-                    var result = await textChannel.SendTextAsync(send.Msg);
+                    var result = textChannel.SendTextAsync(send.Msg);
                 }
                 return;
             }
             return;
         }
 
-        public async ValueTask SendPrivateMsg(Send send) {
-            var user = await _client.GetUserAsync((ulong)send.UserID);
+        public void SendPrivateMsg(Send send) {
+            var user = _client.GetUser((ulong)send.UserID);
             if(user is SocketUser u) {
                 if(send is not KookSend ks) {
-                    var result = await u.SendTextAsync(send.Msg);
+                    var result = u.SendTextAsync(send.Msg);
                 } else {
                     if(ks.KookMsgType == KookMsgType.Code) {
                         send.Msg = $"`{send.Msg}`";
                     }
-                    var result = await u.SendTextAsync(send.Msg);
+                    var result = u.SendTextAsync(send.Msg);
                 }
                 return;
             }
