@@ -8,7 +8,7 @@ namespace RumDice.Framework{
     /// <summary>
     /// 设置管理员
     /// </summary>
-    public class SetGroupAdminSend :QQSend {
+    public class SetGroupAdminSend :OneBotSend {
         public bool Enable { get; set; }
         /// <summary>
         /// 设置管理员发信包

@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 设置群名片
     /// </summary>
-    public class SetGroupCardSend :QQSend{
+    public class SetGroupCardSend :OneBotSend{
         public String CardName { get; set; }
         /// <summary>
         /// 设置群名片发信包

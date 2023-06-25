@@ -9,7 +9,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 通过加群请求
     /// </summary>
-    public class AcceptGroupSend :QQSend{
+    public class AcceptGroupSend :OneBotSend{
         public String Flag { get; set; }
         public CqGroupRequestType RequestType { get; set; }
         /// <summary>

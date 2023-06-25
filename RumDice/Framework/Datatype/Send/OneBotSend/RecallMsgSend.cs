@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 撤回消息
     /// </summary>
-    public class RecallMsgSend : QQSend {
+    public class RecallMsgSend : OneBotSend {
         public long MessageID { get; set; }
         /// <summary>
         /// 撤回消息发信包

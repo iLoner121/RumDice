@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 取消禁言
     /// </summary>
-    public class CancelBanGroupMemberSend :QQSend{
+    public class CancelBanGroupMemberSend :OneBotSend{
         /// <summary>
         /// 取消禁言发信包
         /// </summary>

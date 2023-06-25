@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RumDice.Framework.Datatype {
+namespace RumDice.Framework {
     /// <summary>
     /// 作为存储模板的泛型表（不能直接使用）
     /// </summary>

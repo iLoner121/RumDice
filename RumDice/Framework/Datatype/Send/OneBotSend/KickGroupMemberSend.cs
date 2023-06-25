@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 提出群组成员
     /// </summary>
-    public class KickGroupMemberSend : QQSend {
+    public class KickGroupMemberSend : OneBotSend {
         /// <summary>
         /// 是否拒绝申请
         /// </summary>

@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 全体禁言
     /// </summary>
-    public class BanGroupAllSend : QQSend {
+    public class BanGroupAllSend : OneBotSend {
         /// <summary>
         /// 全体禁言发信包
         /// </summary>

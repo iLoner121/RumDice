@@ -39,7 +39,7 @@ namespace RumDice.Module {
             // 当需要日志服务的时候使用此方式获取一个RumLogger实例
             // 请注意RumLogger为一个单例，请不要new出它的新实例，它会缺少正确的初始化数据
             IRumLogger logger = RumLogger.Instance;
-            string word = returnWords.table["RumDice.Module.IExample.TestEcho"];
+            string word = returnWords.table["RumDice.Module.IExample.TestEcho"]["default"];
             logger.Debug("echo", $"echo测试程序默认的返回词是：{word}");
 
             // MessageTool可以根据post的类型自动制作相应的回复包（群聊/私聊）

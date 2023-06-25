@@ -8,9 +8,14 @@ using System.Threading.Tasks;
 
 namespace RumDice.Framework {
     public class MsgTool : IMsgTool {
-        public string GenerateMsg(string fullname, List<string> paramList) {
-            var returnWord = ((ReturnWordTable)DataCenter.Instance.GetObj(CoreData.Instance.Setting.FileConfig.ReturnWordTable)).table[fullname];
-            for(int i = 0; i < paramList.Count; i++) {
+        public string GenerateMsg(string fullname, List<string> paramList,string returnWordName = "default") {
+            var returnWord = ((ReturnWordTable)DataCenter.Instance.GetObj(CoreData.Instance.Setting.FileConfig.ReturnWordTable)).table[fullname][returnWordName];
+
+            if (returnWord == null) {
+                RumLogger.Instance.Warn("MsgTool", "未找到回复词");
+                returnWord = "{0}";
+            }
+            for (int i = 0; i < paramList.Count; i++) {
                 string temp = "{" + i + "}";
                 if (returnWord.Contains(temp)) {
                     RumLogger.Instance.Debug("MessageTool", $"在回复语句中识别到参数{temp}，将替换为\"{paramList[i]}\"");
@@ -21,9 +26,14 @@ namespace RumDice.Framework {
             return returnWord;
         }
 
-        public string GenerateMsg(string fullname, Dictionary<string, string> paramList) {
-            var returnWord = ((ReturnWordTable)DataCenter.Instance.GetObj(CoreData.Instance.Setting.FileConfig.ReturnWordTable)).table[fullname];
-            foreach(var r in paramList) {
+        public string GenerateMsg(string fullname, Dictionary<string, string> paramList, string returnWordName = "default") {
+            var returnWord = ((ReturnWordTable)DataCenter.Instance.GetObj(CoreData.Instance.Setting.FileConfig.ReturnWordTable)).table[fullname][returnWordName];
+
+            if (returnWord == null) {
+                RumLogger.Instance.Warn("MsgTool", "未找到回复词");
+                returnWord = "{0}";
+            }
+            foreach (var r in paramList) {
                 string temp = "{" + r.Key + "}";
                 if (returnWord.Contains(temp)) {
                     RumLogger.Instance.Debug("MessageTool", $"在回复语句中识别到参数{temp}，将替换为\"{r.Value}\"");
@@ -66,7 +76,7 @@ namespace RumDice.Framework {
             Send send;
             switch (post.BotType) {
                 case BotType.QQbot:
-                    send = new QQSend();
+                    send = new OneBotSend();
                     break;
                 case BotType.KOOKbot:
                     send = new KookSend(type);
@@ -89,6 +99,7 @@ namespace RumDice.Framework {
                 default:
                     break;
             }
+            send = SetBotType(post, send);
             return send;
         }
 
@@ -111,7 +122,18 @@ namespace RumDice.Framework {
         public Send MakeSend(string msg,Send send) {
             var res = (Send)send.Clone();
             res.Msg = msg;
+            res= SetBotType(send, res);
             return res;
+        }
+
+        public Send SetBotType(Post post, Send send) {
+            send.BotType = post.BotType;
+            return send;
+        }
+
+        public Send SetBotType(Send oldSend, Send send) {
+            send.BotType=oldSend.BotType;
+            return send;
         }
     }
 }

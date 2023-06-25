@@ -149,7 +149,7 @@ namespace RumDice.Core {
             OneBotAction action;
             switch (botType) {
                 case BotType.QQbot:
-                    if (send is not QQSend s)
+                    if (send is not OneBotSend s)
                         return false;
                     onebotClient= _qqConnector;
                     action = s.Action;
@@ -157,7 +157,7 @@ namespace RumDice.Core {
                 default:
                     return false;
             }
-            _logger.Info("MsgPipeline", $"向OneBot平台{botType}发送控制命令：{action}");
+
             switch (action) {
                 case OneBotAction.RecallMsg:
                     onebotClient.RecallMsg(send);
@@ -210,6 +210,7 @@ namespace RumDice.Core {
                 default:
                     return false;
             }
+            _logger.Info("MsgPipeline", $"已向OneBot平台{botType}发送控制命令：{action}");
             return true;
         }
 

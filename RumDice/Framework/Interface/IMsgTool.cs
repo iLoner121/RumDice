@@ -85,14 +85,31 @@ namespace RumDice.Framework {
         /// </summary>
         /// <param name="fullname">该方法的全名:namespace.class.method (该方法必须被声明为回复接口)</param>
         /// <param name="paramList">参数列表（取决于回复json中的标记）</param>
+        /// <param name="returnWordName">回复语句名字</param>
         /// <returns></returns>
-        string GenerateMsg(string fullname, List<string> paramList);
+        string GenerateMsg(string fullname, List<string> paramList, string returnWordName="default");
         /// <summary>
         /// 生成输出语句
         /// </summary>
         /// <param name="fullname">该方法的全名:namespace.class.method (该方法必须被声明为回复接口)</param>
         /// <param name="paramList">参数列表（取决于回复json中的标记）</param>
+        /// <param name="returnWordName">回复语句名字“默认default"</param>
         /// <returns></returns>
-        string GenerateMsg(string fullname, Dictionary<string,string> paramList);
+        string GenerateMsg(string fullname, Dictionary<string,string> paramList,string returnWordName="default");
+
+        /// <summary>
+        /// 设置机器人类型
+        /// </summary>
+        /// <param name="post">收信包</param>
+        /// <param name="send">需要被调整的发信包</param>
+        /// <returns>调整后的发信包</returns>
+        Send SetBotType(Post post,Send send);
+        /// <summary>
+        /// 设置机器人类型
+        /// </summary>
+        /// <param name="oldSend">另一个设置好的发信包</param>
+        /// <param name="send">需要被调整的发信包</param>
+        /// <returns>调整后的发信包</returns>
+        Send SetBotType(Send oldSend,Send send);
     }
 }

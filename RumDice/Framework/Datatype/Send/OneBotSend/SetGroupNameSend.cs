@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 设置群名
     /// </summary>
-    public class SetGroupNameSend :QQSend{
+    public class SetGroupNameSend :OneBotSend{
         public string GroupName { get; set; }
         /// <summary>
         /// 设置群名发信包

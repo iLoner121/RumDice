@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 禁言群员
     /// </summary>
-    public class BanGroupMemberSend : QQSend{
+    public class BanGroupMemberSend : OneBotSend{
         public TimeSpan Duration { get; set; }
         /// <summary>
         /// 禁言群员发信包

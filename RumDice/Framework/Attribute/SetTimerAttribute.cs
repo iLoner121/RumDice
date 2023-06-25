@@ -22,6 +22,8 @@ namespace RumDice.Framework {
         /// <param name="duration">定时间隔（秒）</param>
         /// <param name="times">作用次数（默认无限次）</param>
         public SetTimerAttribute(long duration, int times = -1) {
+            if(times<=0)
+                times = -1;
             IsClock = false;
             IsMethodInfo = true;
             Duration = duration;
@@ -34,6 +36,8 @@ namespace RumDice.Framework {
         /// <param name="clock">报时时间（时分秒）</param>
         /// <param name="times">作用次数（默认无限次）</param>
         public SetTimerAttribute(string clock,int times = -1) {
+            if (times <= 0)
+                times = -1;
             IsClock = true;
             IsMethodInfo = true;
             ClockTime = clock;
@@ -47,6 +51,8 @@ namespace RumDice.Framework {
         /// <param name="duration"></param>
         /// <param name="times"></param>
         public SetTimerAttribute(Action<Post> action,long duration, int times = -1) {
+            if (times <= 0)
+                times = -1;
             IsClock = false;
             IsMethodInfo = false;
             Duration = duration;
@@ -62,6 +68,8 @@ namespace RumDice.Framework {
         /// <param name="clock"></param>
         /// <param name="times"></param>
         public SetTimerAttribute(Action<Post> action,string clock,int times = -1) {
+            if (times <= 0)
+                times = -1;
             IsClock = true;
             IsMethodInfo = false;
             ClockTime = clock;

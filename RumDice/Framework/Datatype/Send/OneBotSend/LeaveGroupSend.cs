@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 退群
     /// </summary>
-    public class LeaveGroupSend:QQSend {
+    public class LeaveGroupSend:OneBotSend {
         /// <summary>
         /// 退群发信包
         /// </summary>

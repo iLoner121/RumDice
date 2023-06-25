@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 通过好友申请
     /// </summary>
-    public class AcceptFriendSend:QQSend {
+    public class AcceptFriendSend:OneBotSend {
         public String Flag { get; set; }
         public String? Remark { get; set; }
         /// <summary>

@@ -19,7 +19,7 @@ namespace RumDice.Core {
         public static ICoreData? Instance { get; private set; }
         public int Mode { get; } = 0;
 
-        public int Test { get; } = 0;
+        public int Test { get; } = 1;
         #region Setting
         public string RootDic { get; set; }
 
@@ -343,7 +343,9 @@ namespace RumDice.Core {
                 if(returnWordTable.table.ContainsKey(name)) {
                     continue;
                 }
-                returnWordTable.table.Add(name, "{0}");
+                var dic = new Dictionary<string, string>();
+                dic.Add("default", "{0}");
+                returnWordTable.table.Add(name, dic) ;
             }
             // 存储回复词表
             _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable , ReadType:3);

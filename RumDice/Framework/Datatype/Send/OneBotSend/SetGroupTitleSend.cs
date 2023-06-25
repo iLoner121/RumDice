@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 设置专属头衔
     /// </summary>
-    public class SetGroupTitleSend:QQSend {
+    public class SetGroupTitleSend:OneBotSend {
         public String Title { get; set; }
         /// <summary>
         /// 设置专属头衔发信包

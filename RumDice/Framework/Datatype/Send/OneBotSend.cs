@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RumDice.Framework {
-    public class QQSend : Send{
+    public class OneBotSend : Send{
         public OneBotAction Action { get; set; }
-        public QQSend() {
+        public OneBotSend() {
             BotType = BotType.QQbot;
             Action = OneBotAction.None;
         }

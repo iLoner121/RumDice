@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 删除好友
     /// </summary>
-    public class DeleteFriendSend:QQSend {
+    public class DeleteFriendSend:OneBotSend {
         /// <summary>
         /// 删除好友发信包
         /// </summary>

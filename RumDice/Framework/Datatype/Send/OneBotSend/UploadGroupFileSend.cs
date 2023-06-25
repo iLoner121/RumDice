@@ -8,7 +8,7 @@ namespace RumDice.Framework {
     /// <summary>
     /// 上传群文件
     /// </summary>
-    public class UploadGroupFileSend :QQSend{
+    public class UploadGroupFileSend :OneBotSend{
         public string FilePath { get; set; }
         public string FileName { get; set; }
         /// <summary>
