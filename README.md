@@ -27,6 +27,9 @@ _⚡ 以方便拓展为目标而开发的 原生C# 跑团机器人核心 ⚡_
 
 ### 简单入门
 #### 骰主
+RumDice目前支持QQ（需要gocqhttp）和KOOK（需要你去申请一个Kook机器人token）
+
+你可以在exe同目录的AppSetting.json文件中选择开启哪些平台的服务。（True表示开启，False表示关闭）
 ##### 搭建RumDice
 首先需要下载一个gocqhttp（或许以后项目会附带一个）
 
