@@ -1,1 +1,15 @@
-﻿{"table":{"RumDice.Module.IDeckManager.DeckList":{"default":"目前总共有: \n{牌堆列表}{牌堆数量}副牌堆！"},"RumDice.Module.IExample.TestKeyWord1":{"default":"{0}"},"RumDice.Module.IExample.TestKeyWord2":{"default":"{0}"},"RumDice.Module.IExample.TestKeyWord3":{"default":"{0}"},"RumDice.Module.IExample.TestDolores":{"default":"{0}"},"RumDice.Module.IDeckManager.DrawCard":{"default":"{draw:是谁在抽卡}......:\n{0}"},"RumDice.Module.IExample.TestEcho":{"default":"你刚才发出的语句是：{0}{split}{echotest}"}},"remark":"所有接口的回复词","readType":3,"fileType":"ReturnWordTable"}
+﻿{
+    "table":
+    {
+        "RumDice.Module.IDeckManager.DeckList":{"default":"目前总共有: \n{牌堆列表}{牌堆数量}副牌堆！"},
+        "RumDice.Module.IExample.TestKeyWord1":{"default":"{0}"},
+        "RumDice.Module.IExample.TestKeyWord2":{"default":"{0}"},
+        "RumDice.Module.IExample.TestKeyWord3":{"default":"{0}"},
+        "RumDice.Module.IExample.TestDolores":{"default":"{0}"},
+        "RumDice.Module.IDeckManager.DrawCard":{"default":"{draw:是谁在抽卡}......:\n{0}"},
+        "RumDice.Module.IExample.TestEcho":{"default":"你刚才发出的语句是：{0}{split}{echotest}"}
+    },
+    "remark":"所有接口的回复词",
+    "readType":3,
+    "fileType":"ReturnWordTable"
+}
