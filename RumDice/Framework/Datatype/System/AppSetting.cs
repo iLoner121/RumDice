@@ -84,6 +84,7 @@ namespace RumDice.Framework {
         /// </summary>
         public string ReturnWordTable { get; set; } = "\\System\\Text\\ReturnWordTable.json";
         public string ReturnWordBackup { get; set; } = "\\System\\Text\\ReturnWordBackup.json";
+        public string DefaultRes {get; set;} = "\\System\\Text\\DefaultRes.json";
     }
 
     public class LoggerConfig {

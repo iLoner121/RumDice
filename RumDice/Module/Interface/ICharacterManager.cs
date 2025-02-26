@@ -11,7 +11,10 @@ namespace RumDice.Module{
         [Reply(".CharacterList")]
         string ShowCharacterList(Post post);
 
-        [KeyWord(".CharacterChange", isPrefix:true, isDivided:true)]
+        [KeyWord(".CharacterChange", IsSuffix=true)]
         string CharacterChange(Post post);
+
+        [Listen(AllType.Start)]
+        void Initialize(Post post);
     }
 }

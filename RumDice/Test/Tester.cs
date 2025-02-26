@@ -19,11 +19,16 @@ namespace RumDice.Test {
 
         public async ValueTask RunTest() {
             var t = new GroupMsg();
-            t.Msg = ".draw _抽牌压力测试";
+            t.Msg = "decklist 显示牌堆";
             t.MsgType=MsgType.Group;
             _handleGroupMessage(t);
 
-            for(int i = 0; i < 100; i++) {
+            var c = new GroupMsg();
+            c.Msg = ".CharacterList";
+            c.MsgType=MsgType.Group;
+            _handleGroupMessage(c);
+
+            for(int i = 0; i < 10; i++) {
                 var post = new GroupMsg();
                 
                 switch (new Random().Next(1,6)) {
@@ -49,6 +54,10 @@ namespace RumDice.Test {
                 post.MsgType = MsgType.Group;
                 _handleGroupMessage(post);
             }
+            var s = new GroupMsg();
+            s.Msg = "丝莉洛德.CharacterChange";
+            s.MsgType=MsgType.Group;
+            _handleGroupMessage(s);
             Task.Delay(100000).Wait();
             return;
         }
