@@ -33,6 +33,11 @@ namespace RumDice.Core {
         /// </summary>
         Dictionary<List<KeyWordAttribute>,string> MatchTable { get; }
 
+        /// <summary>
+        /// 用于存取指令与对应接口，指令与设置相同
+        /// </summary>
+        Dictionary<string, string> KeyWordTable {get;}
+
 
         /// <summary>
         /// 接口表（RumDice自带的所有回复接口）
