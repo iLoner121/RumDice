@@ -344,13 +344,57 @@ namespace RumDice.Core {
                     continue;
                 }
                 var dic = new Dictionary<string, string>();
+                // if (defaultRes.table.ContainsKey(name)){
+                //     dic = defaultRes.table[name];
+                // }
+                // else{
+                //     dic.Add("default", "{0}");
+                // }
                 dic.Add("default", "{0}");
                 returnWordTable.table.Add(name, dic) ;
             }
             // 存储回复词表
-            _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable , ReadType:3);
-            _dataCenter.SaveFile(returnWordTable,Setting.FileConfig.ReturnWordBackup , ReadType: 1);
+            _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable, ReadType:3);
+            _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordBackup, ReadType:1);
 
+        }
+
+        public async ValueTask ReLoadRes(ReturnWordTable newRes, string requester="CoreData"){
+            ReturnWordTable returnWordTable = newRes;
+            ReturnWordTable defaultRes = new ReturnWordTable();
+            if (_dataCenter.TryGetObj(Setting.FileConfig.DefaultRes, out object dr)){
+                if (dr is ReturnWordTable){
+                    defaultRes = (ReturnWordTable)dr;
+                }
+            }
+            returnWordTable.remark = returnWordTable.remark==null?"所有接口的回复词":returnWordTable.remark;
+            foreach (var name in FuncTable.Keys) {
+                if(returnWordTable.table.ContainsKey(name)) {
+                    continue;
+                }
+                var dic = new Dictionary<string, string>();
+                if (defaultRes.table.ContainsKey(name)){
+                    dic = defaultRes.table[name];
+                }
+                else{
+                    dic.Add("default", "{0}");
+                }
+                returnWordTable.table.Add(name, dic) ;
+            }
+            try{
+                _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable, ReadType:3);
+                // _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordBackup, ReadType:1);
+                _logger.Debug(requester, "^^^重新装载了回复词");
+            }
+            catch (Exception ex){
+                _logger.Error(ex, "^^^重载回复词失败");
+                if(_dataCenter.TryGetObj(Setting.FileConfig.ReturnWordBackup,out object backup)) {
+                    if(backup is ReturnWordTable) {
+                        returnWordTable = (ReturnWordTable)backup;
+                    }
+                }
+                _dataCenter.SaveFile(returnWordTable, Setting.FileConfig.ReturnWordTable, ReadType:3);
+            }
         }
     }
 }

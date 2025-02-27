@@ -1,0 +1,12 @@
+{
+    "table": {
+        "RumDice.Module.IDeckManager.DeckList": "目前总共有: \n{牌堆列表}{牌堆数量}副牌堆！",
+        "RumDice.Module.IDeckManager.DrawCard": "{draw:是谁在抽卡}......:\n{0}",
+        "RumDice.Module.ICharacterManager.CharacterChange": "这里是德洛莉丝，有什么我能帮你的吗？",
+        "RumDice.Module.ICharacterManager.ShowCharacterList": "角色库中角色为:\n{0}"
+    },
+    "name": "德洛莉丝",
+    "remark": "是德洛莉丝！",
+    "fileType": "Character",
+    "readType": 1
+}

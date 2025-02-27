@@ -2,7 +2,8 @@
   "FileConfig": {
     "RepositoryRoot": "\\File",
     "ReturnWordTable": "\\System\\Text\\ReturnWordTable.json",
-    "ReturnWordBackup": "\\System\\Text\\ReturnWordBackup.json"
+    "ReturnWordBackup": "\\System\\Text\\ReturnWordBackup.json",
+    "DefaultRes": "\\System\\Text\\DefaultRes.json"
   },
   "LoggerConfig": {
     "Location": "\\File\\Log",

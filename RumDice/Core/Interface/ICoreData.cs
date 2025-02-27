@@ -80,6 +80,10 @@ namespace RumDice.Core {
         /// <returns></returns>
         ValueTask LoadReturnWord();
 
-        
+        /// <summary>
+        /// 重新加载回复词库
+        /// </summary>
+        /// <returns></returns>
+        ValueTask ReLoadRes(ReturnWordTable newRes, string requester);
     }
 }
