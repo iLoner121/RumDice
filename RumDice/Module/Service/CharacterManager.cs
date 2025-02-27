@@ -75,8 +75,10 @@ namespace RumDice.Module{
         public void Initialize(Post post){
             string location = "\\Character";
             string list = "\\CharacterList.json";
-
+            var coreData = CoreData.Instance;
             var dataCenter = DataCenter.Instance;
+            string? KtoV = "";
+
             characterList = new CharacterList();
             if (dataCenter.TryGetObj(location + list, out object obj))
                 if (obj is CharacterList) 
@@ -92,17 +94,21 @@ namespace RumDice.Module{
                     continue;
                 }
                 character = (Character)i;
-                if (characterList.table.ContainsKey(character.name)){
-                    // 后覆盖
-                    foreach (var j in character.table){
-                        characterList.table[character.name].table[j.Key] = j.Value;
-                    }
+                if (!characterList.table.ContainsKey(character.name)){
+                    characterList.table.Add(character.name, new Character());
+                    characterList.table[character.name].name = character.name;
                 }
-                else{
-                    characterList.table.Add(character.name, character);
+                // 后覆盖
+                foreach (var j in character.table){
+                    if (coreData.KeyWordTable.ContainsKey(j.Key)){
+                        KtoV = coreData.KeyWordTable[j.Key];
+                    }
+                    else{
+                        KtoV = j.Key;
+                    }
+                    characterList.table[character.name].table[KtoV] = j.Value;
                 }
             }
-            
 
             //todo: 自定义启动角色
             if (characterList.table.ContainsKey("德洛莉丝")){
@@ -113,7 +119,6 @@ namespace RumDice.Module{
                     dic.Add("default", i.Value);
                     iniRes.table.Add(i.Key, dic);
                 }
-                var coreData = CoreData.Instance;
                 coreData.ReLoadRes(iniRes, moduleName);
             }
 

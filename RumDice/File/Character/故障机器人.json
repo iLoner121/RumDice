@@ -1,0 +1,10 @@
+{
+    "table": {
+        "RumDice.Module.IDeckManager.DeckList": "目前总共有: \n{牌堆列表}{牌堆数量}副牌堆！",
+        "draw": "我的球应该随机攻击一个敌人\n{0}",
+        ".CharacterChange": "不急，我还在启动",
+        ".CharacterList": "角色库中角色为:\n{0}"
+    },
+    "name": "故障机器人",
+    "fileType": "Character"
+}

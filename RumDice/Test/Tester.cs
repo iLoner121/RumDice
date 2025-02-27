@@ -1,4 +1,5 @@
-﻿using RumDice.Framework;
+﻿using RumDice.Core;
+using RumDice.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace RumDice.Test {
             c.MsgType=MsgType.Group;
             _handleGroupMessage(c);
 
-            for(int i = 0; i < 10; i++) {
+            for(int i = 0; i < 100; i++) {
                 var post = new GroupMsg();
                 
                 switch (new Random().Next(1,6)) {
@@ -58,6 +59,15 @@ namespace RumDice.Test {
             s.Msg = "丝莉洛德.CharacterChange";
             s.MsgType=MsgType.Group;
             _handleGroupMessage(s);
+            var p = new GroupMsg();
+            p.Msg = "故障机器人.CharacterChange";
+            p.MsgType=MsgType.Group;
+            _handleGroupMessage(p);
+            var q = new GroupMsg();
+            q.Msg = ".draw 蛞蝓猫的道具";
+            q.MsgType=MsgType.Group;
+            _handleGroupMessage(q);
+
             Task.Delay(100000).Wait();
             return;
         }

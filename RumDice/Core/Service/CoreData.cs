@@ -31,6 +31,7 @@ namespace RumDice.Core {
         public Dictionary<string, MyMethodInfo> FuncTable { get; } = new();
         public Dictionary<string, MyMethodInfo> ServiceTable { get; } = new();
         public Dictionary<AllType, List<MyMethodInfo>> ListenerTable { get; } = new();
+        public Dictionary<string, string> KeyWordTable{get;} = new Dictionary<string, string>();
         public int MinPriority { get; private set; } = 1;
         public int MaxPriority { get; private set; } = 5;
         #endregion
@@ -150,6 +151,7 @@ namespace RumDice.Core {
                     if (atts.Count > 0) {
                         try {
                             MatchTable.Add(atts, $"{assembly.FullName}.{method.Name}");
+                            KeyWordTable.Add(atts[0].KeyWord, $"{assembly.FullName}.{method.Name}");
                             FuncTable.Add($"{assembly.FullName}.{method.Name}", new MyMethodInfo(method));
                             _logger.Debug("CoreData", $"***已导入回复接口：{method.Name}");
                         }
@@ -159,6 +161,9 @@ namespace RumDice.Core {
                                 MatchTable.Remove(atts);
                             if (FuncTable.ContainsKey($"{assembly.FullName}.{method.Name}"))
                                 FuncTable.Remove($"{assembly.FullName}.{method.Name}");
+                            if (KeyWordTable.ContainsKey(atts[0].KeyWord)){
+                                KeyWordTable.Remove(atts[0].KeyWord);
+                            }
                         }
                     }
                 }
@@ -182,6 +187,7 @@ namespace RumDice.Core {
                             }
                             var k = new List<KeyWordAttribute>() { new KeyWordAttribute(a.Reply, isFullMatch:true) };
                             MatchTable.Add(k, $"{assembly.FullName}.{method.Name}");
+                            KeyWordTable.Add(k[0].KeyWord, $"{assembly.FullName}.{method.Name}");
                             _logger.Debug("CoreData", "-*-导入Reply接口成功");
                         }
                         catch (Exception ex) {
@@ -214,6 +220,7 @@ namespace RumDice.Core {
                                 new List<KeyWordAttribute>() {
                                     new KeyWordAttribute($"{a.Prefix}", isPrefix: true,isDivided:true)
                                 }, $"{assembly.FullName}.{method.Name}");
+                            KeyWordTable.Add($"{a.Prefix}", $"{assembly.FullName}.{method.Name}");
                             _logger.Debug("CoreData", $"---已导入前缀指令：{a.Prefix}->{method.Name}");
                             if (FuncTable.ContainsKey($"{assembly.FullName}.{method.Name}")) {
                                 return;
