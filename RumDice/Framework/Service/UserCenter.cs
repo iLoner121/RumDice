@@ -4,9 +4,14 @@ namespace RumDice.Framework{
     public class UserCenter : IUserCenter
     {
 
+        private string serviceName = "IUserCenter";
+        private string local = "\\System\\User";
+        private UserList? userList;
+        private UserIndex? userIndex;
+
         private string GetPrimary(){
             Random random = new();
-            string res = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString().Substring(7);
+            string res = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString().Substring(5);
             for (int i=1; i<=5; i++){
                 res += random.Next(9);
             }
@@ -14,20 +19,44 @@ namespace RumDice.Framework{
         }
         public User GetUser(string userID, BotType botType)
         {
-            throw new NotImplementedException();
+            if (DataCenter.Instance.TryGetObj(local+"\\UserIndex.json", out Object obj)){
+                userIndex = (UserIndex)obj;
+            }
+            else{
+                return null;
+            }
+            if (userIndex.table[botType.ToString()].ContainsKey(userID) == false){
+                return null;
+            }
+            return GetUser(userIndex.table[botType.ToString()][userID]);
         }
 
         public User GetUser(string pramaryKey)
         {
-            throw new NotImplementedException();
+            if (DataCenter.Instance.TryGetObj(local+"\\UserList.json", out Object obj)){
+                userList = (UserList)obj;
+            }
+            else{
+                return null;
+            }
+            if (userList.table.ContainsKey(pramaryKey) != true){
+                return null;
+            }
+            return userList.table[pramaryKey];
         }
 
-        public User NewUser(Post post, UPermissionType userPermissionType = UPermissionType.nomal)
+        public User NewUser(Post post, UPermissionType userPermissionType = UPermissionType.Normal)
         {
-            throw new NotImplementedException();
+            if (post is not BaseMsg){
+                RumLogger.Instance.Debug(serviceName, "NewUser:传入了错误的Post变量");
+                return null;
+            }
+            BaseMsg baseMsg = (BaseMsg)post;
+            User res = NewUser(new Dictionary<string, string>{{baseMsg.BotType.ToString(), baseMsg.UserID.ToString()}});
+            return res;
         }
 
-        public User NewUser(Dictionary<BotType, string> UserID, UPermissionType userPermissionType = UPermissionType.nomal)
+        public User NewUser(Dictionary<BotType, string> UserID, UPermissionType userPermissionType = UPermissionType.Normal)
         {
             Dictionary<string, string> dict = new();
             foreach (var i in UserID){
@@ -37,7 +66,7 @@ namespace RumDice.Framework{
             return res;
         }
 
-        public User NewUser(Dictionary<string, string> UserID, UPermissionType userPermissionType = UPermissionType.nomal)
+        public User NewUser(Dictionary<string, string> UserID, UPermissionType userPermissionType = UPermissionType.Normal)
         {
             User res = new();
             foreach (BotType i in Enum.GetValues(typeof(BotType))){

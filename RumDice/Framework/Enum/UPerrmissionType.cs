@@ -12,7 +12,7 @@ namespace RumDice.Framework{
         /// <summary>
         /// 普通用户权限
         /// </summary>
-        nomal
+        Normal
 
     }
 }
