@@ -11,7 +11,7 @@ namespace RumDice.Framework {
     [AttributeUsage(AttributeTargets.Method)]
     public class PrefixMatchAttribute : Attribute {
         public string Prefix { get; set; }
-
+        
         /// <summary>
         /// 声明前缀指令
         /// </summary>

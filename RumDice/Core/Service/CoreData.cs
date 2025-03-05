@@ -31,7 +31,7 @@ namespace RumDice.Core {
         public Dictionary<string, MyMethodInfo> FuncTable { get; } = new();
         public Dictionary<string, MyMethodInfo> ServiceTable { get; } = new();
         public Dictionary<AllType, List<MyMethodInfo>> ListenerTable { get; } = new();
-        public Dictionary<string, string> KeyWordTable{get;} = new Dictionary<string, string>();
+        public Dictionary<string, string> KeyWordTable{get;} = new Dictionary<string, string>(); // 指令与接口
         public int MinPriority { get; private set; } = 1;
         public int MaxPriority { get; private set; } = 5;
         #endregion

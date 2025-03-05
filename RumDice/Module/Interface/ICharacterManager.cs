@@ -11,7 +11,7 @@ namespace RumDice.Module{
         [Reply(".CharacterList")]
         string ShowCharacterList(Post post);
 
-        [KeyWord(".CharacterChange", IsSuffix=true)]
+        [KeyWord(".CharacterChange", IsSuffix=true, Permission=UPermissionType.Sudo)]
         string CharacterChange(Post post);
 
         [Listen(AllType.Start)]

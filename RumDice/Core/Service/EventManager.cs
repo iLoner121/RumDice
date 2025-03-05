@@ -64,7 +64,7 @@ namespace RumDice.Core {
             _logger.Debug("EventManager","消息已接收->私聊");
             var baseMsg = (BaseMsg)post;
             MethodInfo method;
-            bool isMatch = MatchFunc(baseMsg.Msg, 1, out method);
+            bool isMatch = MatchFunc(baseMsg, 1, out method);
 
             if (isMatch) {
                 _logger.Info("EventManager", "指令已匹配->私聊");
@@ -79,7 +79,7 @@ namespace RumDice.Core {
             _logger.Debug("EventManager", "消息已接收->群聊");
             var baseMsg = (BaseMsg)post;
             MethodInfo method;
-            bool isMatch = MatchFunc(baseMsg.Msg, 3 , out method);
+            bool isMatch = MatchFunc(baseMsg, 3 , out method);
 
             if (isMatch) {
                 _logger.Info("EventManager", "指令已匹配->群聊");
@@ -135,8 +135,15 @@ namespace RumDice.Core {
         /// <param name="scopeCheck">不符合的scope</param>
         /// <param name="method">返回的method</param>
         /// <returns></returns>
-        public bool MatchFunc(string msg,int scopeCheck,out MethodInfo method) {
+        public bool MatchFunc(BaseMsg baseMsg,int scopeCheck,out MethodInfo method) {
             method = null;
+
+            UserCenter userCenter = new UserCenter();
+            User? user = userCenter.GetUser(baseMsg.UserID.ToString(), baseMsg.BotType);
+            if (user == null){
+                user = userCenter.NewUser(baseMsg);
+                userCenter.Add(user);
+            }
 
             for (int i = _minPriority; i <= _maxPriority; i++) {
                 // 提取对应优先级
@@ -150,7 +157,7 @@ namespace RumDice.Core {
                     if (_globalData.FuncTable[temp.Value].Scope == scopeCheck)
                         continue;
                     // 是否匹配
-                    if (!MatchKeyWord(msg, temp.Key))
+                    if (!MatchKeyWord(baseMsg.Msg, temp.Key, user))
                         continue;
 
                     method = _globalData.FuncTable[temp.Value].MethodInfo;
@@ -167,7 +174,7 @@ namespace RumDice.Core {
         /// <param name="message">用户的输入字符串</param>
         /// <param name="attributes">KeyWordAttribute列表</param>
         /// <returns></returns>
-        bool MatchKeyWord(string message,List<KeyWordAttribute> attributes) {
+        bool MatchKeyWord(string message, List<KeyWordAttribute> attributes, User user) {
             // TODO: 优化代码可读性和效率
             if (message == null || message.IsEmpty())
                 return false;
@@ -176,8 +183,12 @@ namespace RumDice.Core {
             string originalMessage = message.Trim();
 
             // 匹配标识符
-            bool c1 = true, c2 = true, c3 = true, c4 = true;
+            bool c1 = true, c2 = true, c3 = true, c4 = true, c5 = true;
             foreach (KeyWordAttribute attribute in attributes) {
+
+                if (int.Parse(user.Permission) <= (int)attribute.Permission)
+                    c5 = false;
+
                 // 判断是否为正则匹配，抵消其他操作
                 if (attribute.IsRegex) {
                     if (Regex.IsMatch(attribute.KeyWord, message)) {
@@ -241,7 +252,7 @@ namespace RumDice.Core {
                         }
                     }
                 }
-                if (c1 || (attribute.IsFullMatch && c2) || (attribute.IsPrefix && c3) || (attribute.IsSuffix && c4)) {
+                if (c1 || (attribute.IsFullMatch && c2) || (attribute.IsPrefix && c3) || (attribute.IsSuffix && c4) || c5) {
                     return false;
                 }
             }

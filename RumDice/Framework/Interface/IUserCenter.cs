@@ -1,5 +1,6 @@
 namespace RumDice.Framework{
 
+    [MyClass]
     public interface IUserCenter{
         /// <summary>
         /// 根据用户平台账号获取对应用户
@@ -39,5 +40,15 @@ namespace RumDice.Framework{
         /// <param name="userPermissionType">新用户权限</param>
         /// <returns>返回对应的User，创建失败时返回null</returns>
         public User NewUser(Dictionary<string, string> UserID, UPermissionType userPermissionType=UPermissionType.Normal);
+
+        /// <summary>
+        /// 加入新用户
+        /// </summary>
+        /// <param name="user">新用户</param>
+        /// <returns></returns>
+        public bool Add(User user);
+
+        [Listen(AllType.Start)]
+        public void Initialize(Post post);
     }
 }
