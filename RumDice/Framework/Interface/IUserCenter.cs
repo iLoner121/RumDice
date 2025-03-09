@@ -48,6 +48,15 @@ namespace RumDice.Framework{
         /// <returns></returns>
         public bool Add(User user);
 
+        /// <summary>
+        /// 更新用户信息
+        /// </summary>
+        /// <param name="primaryKey">用户唯一索引</param>
+        /// <param name="info">新用户信息<string, string></param>
+        /// <param name="UserID">新用户账号<string, string></param>
+        /// <returns></returns>
+        public bool Updata(string primaryKey, Dictionary<string, string>? info, Dictionary<string, string>? UserID);
+
         [Listen(AllType.Start)]
         public void Initialize(Post post);
     }

@@ -33,7 +33,7 @@ namespace RumDice.Framework{
             return user;
         }
 
-        public User GetUser(string pramaryKey)
+        public User GetUser(string primaryKey)
         {
             User? user = null;
             if (DataCenter.Instance.TryGetObj(local+"\\UserList.json", out Object obj)){
@@ -42,8 +42,8 @@ namespace RumDice.Framework{
             else{
                 RumLogger.Instance.Debug(serviceName, "UserList异常");
             }
-            if (userList != null && userList.table.ContainsKey(pramaryKey)){
-                user = userList.table[pramaryKey];
+            if (userList != null && userList.table.ContainsKey(primaryKey)){
+                user = userList.table[primaryKey];
             }
             userList = null;
             return user;
@@ -140,6 +140,51 @@ namespace RumDice.Framework{
                 userList = null;
                 return false;
             }
+        }
+
+        public bool Updata(string primaryKey, Dictionary<string, string>? info=null, Dictionary<string, string>? UserID=null)
+        {
+            if (DataCenter.Instance.TryGetObj(local+"\\UserIndex.json", out Object obj1)){
+                userIndex = (UserIndex)obj1;
+            }
+            else{
+                RumLogger.Instance.Debug(serviceName, "UserIndex异常");
+                return false;
+            }
+            if (DataCenter.Instance.TryGetObj(local+"\\UserList.json", out Object obj2)){
+                userList = (UserList)obj2;
+            }
+            else{
+                RumLogger.Instance.Debug(serviceName, "UserList异常");
+                return false;
+            }
+            if (userList.table.ContainsKey(primaryKey) == false){
+                return false;
+            }
+            if (info != null){
+                foreach (var i in info){
+                    userList.table[primaryKey].Info[i.Key] = i.Value;
+                }
+            }
+            if (UserID != null){
+                foreach (var i in UserID){
+                    if (userList.table[primaryKey].UserID.ContainsKey(i.Key)){
+                        if (userList.table[primaryKey].UserID[i.Key] == "0"){
+                            userList.table[primaryKey].UserID[i.Key] = i.Value;
+                        }
+                        else{
+                            string curID = userList.table[primaryKey].UserID[i.Key];
+                            userIndex.table[i.Key].Remove(curID);
+                        }
+                        userIndex.table[i.Key].Add(i.Key, i.Value);
+                    }
+                }
+                DataCenter.Instance.SaveFile<UserIndex>(userIndex, local+"\\UserIndex.json", ReadType:3);
+            }
+            DataCenter.Instance.SaveFile<UserList>(userList, local+"\\UserList.json", ReadType:3);
+            userList = null;
+            userList = null;
+            return true;
         }
 
         public void Initialize(Post post)
