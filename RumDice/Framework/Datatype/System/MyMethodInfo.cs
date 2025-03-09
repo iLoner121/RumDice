@@ -30,7 +30,7 @@ namespace RumDice.Framework {
 
         public bool IsOnlyInternal { get; set; } = false;
 
-        public MyMethodInfo(MethodInfo methodInfo) {
+        public MyMethodInfo(MethodInfo methodInfo, bool IsPlugin=false) {
             MethodInfo = methodInfo;
         }
 

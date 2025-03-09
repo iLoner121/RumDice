@@ -26,6 +26,8 @@ namespace RumDice.Core {
         public AppSetting Setting { get; set; } = new();
         #endregion
 
+        public IPluginSupporter pluginSupporter{get; set;} = new PluginSupporter();
+
         #region MatchTable
         public Dictionary<List<KeyWordAttribute>, string> MatchTable { get; } = new();
         public Dictionary<string, MyMethodInfo> FuncTable { get; } = new();
@@ -87,6 +89,7 @@ namespace RumDice.Core {
         public async ValueTask Initialize() {
             await LoadAppSetting();
             await LoadInnerFunc();
+            await pluginSupporter.LoadPlugin();
         }
         public async ValueTask LoadAppSetting() {
             await Task.Delay(0);
